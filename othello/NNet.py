@@ -41,7 +41,7 @@ class NNetWrapper(NeuralNet):
             v_losses = AverageMeter()
             end = time()
 
-            bar = Bar('Training Net', max=len(batches))
+            bar = Bar(f'EPOCH {epoch+1:02d} ::: Training Net', max=len(batches))
 
             for batch_idx, batch in enumerate(batches):
                 boards, target_pis, target_vs = batch
@@ -84,7 +84,8 @@ class NNetWrapper(NeuralNet):
                     lv=v_losses.avg,
                 )
                 bar.next()
-        bar.finish()
+            bar.finish()
+            print()
 
 
     def predict(self, board):

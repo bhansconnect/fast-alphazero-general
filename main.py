@@ -8,7 +8,7 @@ args = dotdict({
     'workers': mp.cpu_count(),
     'batch_size': 128,
     'numIters': 2,
-    'gamesPerIteration': 512,
+    'gamesPerIteration': 2500,
     'numMCTSSims': 25,
     'numItersForTrainExamplesHistory': 10,
     'checkpoint': 'checkpoint',
@@ -18,7 +18,6 @@ args = dotdict({
 
     'tempThreshold': 15,
     'updateThreshold': 0.6,
-    'maxlenOfQueue': 200000,
     'cpuct': 1,
 
 })

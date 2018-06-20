@@ -3,6 +3,7 @@ from ExpertAgent import ExpertAgent
 import torch
 from torch import multiprocessing as mp
 from torch.utils.data import TensorDataset, ConcatDataset, DataLoader
+from pytorch_classification.utils import Bar, AverageMeter
 from queue import Empty
 from time import time
 
@@ -43,23 +44,17 @@ class Coach:
     def learn(self):
         for i in range(self.args.numIters):
             print(f'------ITER {i+1}------')
-            print(f"Main: Generating {self.args.gamesPerIteration} samples")
-            start = time()
             self.generateApprenticeAgents()
             self.processApprenticeBatches()
-            print(f"Main: Generated samples in {time()-start} seconds")
-            print(f"Main: Running Expert on samples")
-            start = time()
             self.generateExpertAgents()
             self.processExpertBatches()
             self.killApprenticeAgents()
-            print(f"Main: Ran Expert on samples in {time()-start} seconds")
             self.saveIterationSamples(i)
             self.killExpertAgents()
-            print(f"Main: Training network on samples from last {min(self.args.numItersForTrainExamplesHistory, i+1)} iterations")
+            print(
+                f"Main: Training network on samples from last {min(self.args.numItersForTrainExamplesHistory, i+1)} iterations")
             start = time()
             self.train(i)
-            print(f"Main: Trained network on samples in {time()-start} seconds")
             print(f"Main: Competing against self {self.args.arenaCompare} times")
             w, t, l = self.compareToLastIter()
             print(f"Main: Results -> wins: {w}, ties: {t}, losses: {l}\n")
@@ -74,6 +69,11 @@ class Coach:
             self.apprentices[i].start()
 
     def processApprenticeBatches(self):
+        sample_time = AverageMeter()
+        bar = Bar('Generating Apprentice Samples', max=self.args.gamesPerIteration)
+        end = time()
+
+        n = 0
         while not self.sample_queue.full():
             try:
                 id = self.ready_queue.get(timeout=1)
@@ -82,6 +82,15 @@ class Coach:
                 self.batch_ready[id].set()
             except Empty:
                 pass
+            size = self.sample_queue.qsize()
+            if size > n:
+                sample_time.update((time() - end) / (size - n), size - n)
+                n = size
+                end = time()
+            bar.suffix = f'({size}/{self.args.gamesPerIteration}) Sample Time: {sample_time.avg:.3f}s | Total: {bar.elapsed_td} | ETA: {bar.eta_td:}'
+            bar.goto(size)
+        bar.finish()
+        print()
 
     def killApprenticeAgents(self):
         for i in range(self.args.workers):
@@ -102,6 +111,11 @@ class Coach:
             self.experts[i].start()
 
     def processExpertBatches(self):
+        sample_time = AverageMeter()
+        bar = Bar('Generating Expert Samples', max=self.args.gamesPerIteration)
+        end = time()
+
+        n = 0
         while not self.file_queue.full():
             try:
                 id = self.ready_queue.get(timeout=1)
@@ -111,6 +125,15 @@ class Coach:
                 self.batch_ready[id].set()
             except Empty:
                 pass
+            size = self.file_queue.qsize()
+            if size > n:
+                sample_time.update((time() - end)/(size - n), size - n)
+                n = size
+                end = time()
+            bar.suffix = f'({size}/{self.args.gamesPerIteration}) Sample Time: {sample_time.avg:.3f}s | Total: {bar.elapsed_td} | ETA: {bar.eta_td:}'
+            bar.goto(size)
+        bar.finish()
+        print()
 
     def killExpertAgents(self):
         for i in range(self.args.workers):
@@ -136,7 +159,7 @@ class Coach:
 
     def train(self, iteration):
         datasets = []
-        for i in range(max(0, iteration - self.args.numItersForTrainExamplesHistory), iteration+1):
+        for i in range(max(0, iteration - self.args.numItersForTrainExamplesHistory), iteration + 1):
             data_tensor = torch.load(f'data/iteration-{i:04d}-data.pkl')
             policy_tensor = torch.load(f'data/iteration-{i:04d}-policy.pkl')
             value_tensor = torch.load(f'data/iteration-{i:04d}-value.pkl')
