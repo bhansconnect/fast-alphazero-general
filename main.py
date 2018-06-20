@@ -7,16 +7,14 @@ from utils import *
 args = dotdict({
     'workers': mp.cpu_count(),
     'batch_size': 128,
-    'numIters': 2,
-    'gamesPerIteration': 2500,
+    'numIters': 1000,
+    'gamesPerIteration': 25000,
     'numMCTSSims': 25,
     'numItersForTrainExamplesHistory': 10,
     'checkpoint': 'checkpoint',
     'arenaCompare': 40,
     'load_model': False,
-    'load_folder_file': ('/checkpoint/','best.pkl'),
-
-    'tempThreshold': 15,
+    'load_folder_file': ('./checkpoint/','best.pkl'),
     'updateThreshold': 0.6,
     'cpuct': 1,
 

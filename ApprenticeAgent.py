@@ -7,7 +7,7 @@ from queue import Full
 
 class ApprenticeAgent(mp.Process):
 
-    def __init__(self, id, game, ready_queue, batch_ready, batch_tensor, policy_tensor, output_queue,):
+    def __init__(self, id, game, ready_queue, batch_ready, batch_tensor, policy_tensor, output_queue, complete_count):
         super().__init__()
         self.id = id
         self.game = game
@@ -20,6 +20,8 @@ class ApprenticeAgent(mp.Process):
         self.games = []
         self.histories = []
         self.turn = []
+        self.complete_count = complete_count
+        self.done = False
         self.valid = torch.zeros_like(self.policy_tensor)
         for _ in range(self.batch_size):
             self.games.append(self.game.getInitBoard())
@@ -27,7 +29,7 @@ class ApprenticeAgent(mp.Process):
             self.turn.append(1)
 
     def run(self):
-        while not self.output_queue.full():
+        while not self.done:
             self.generateBatch()
             self.processBatch()
 
@@ -61,7 +63,10 @@ class ApprenticeAgent(mp.Process):
                     else:
                         self.output_queue.put_nowait((self.game.getCanonicalForm(self.histories[i][r], -1), -1 * winner))
                 except Full:
-                    pass
+                    self.done = True
+                    with self.complete_count.get_lock():
+                        self.complete_count.value += 1
+                    return
                 self.games[i] = self.game.getInitBoard()
                 self.histories[i] = []
                 self.turn[i] = 1

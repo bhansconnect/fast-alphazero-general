@@ -6,7 +6,7 @@ from MCTS import MCTS
 
 class ExpertAgent(mp.Process):
     def __init__(self, id, game, ready_queue, batch_ready, batch_tensor, policy_tensor, value_tensor, input_queue,
-                 output_queue, args):
+                 output_queue, complete_count, args):
         super().__init__()
         self.id = id
         self.game = game
@@ -23,9 +23,11 @@ class ExpertAgent(mp.Process):
         self.values = [None] * self.batch_size
         self.mcts = [None] * self.batch_size
         self.samples = 0
+        self.complete_count = complete_count
+        self.done = False
 
     def run(self):
-        while not self.output_queue.full():
+        while not self.done:
             self.getSamples()
             if self.samples > 0:
                 self.processSamples()
@@ -39,7 +41,9 @@ class ExpertAgent(mp.Process):
                 self.mcts[self.samples] = MCTS(self.game, None, self.args)
                 self.samples += 1
         except Empty:
-            pass
+            self.done = True
+            with self.complete_count.get_lock():
+                self.complete_count.value += 1
 
     def processSamples(self):
         for i in range(self.args.numMCTSSims):
@@ -59,4 +63,6 @@ class ExpertAgent(mp.Process):
                 policy = self.mcts[i].getExpertProb(self.boards[i])
                 self.output_queue.put_nowait((self.boards[i], policy, self.values[i]))
         except Full:
-            pass
+            self.done = True
+            with self.complete_count.get_lock():
+                self.complete_count.value += 1
