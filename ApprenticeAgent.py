@@ -32,6 +32,8 @@ class ApprenticeAgent(mp.Process):
         while not self.done:
             self.generateBatch()
             self.processBatch()
+        with self.complete_count.get_lock():
+            self.complete_count.value += 1
 
     def generateBatch(self):
         for i in range(self.batch_size):
@@ -64,8 +66,6 @@ class ApprenticeAgent(mp.Process):
                         self.output_queue.put_nowait((self.game.getCanonicalForm(self.histories[i][r], -1), -1 * winner))
                 except Full:
                     self.done = True
-                    with self.complete_count.get_lock():
-                        self.complete_count.value += 1
                     return
                 self.games[i] = self.game.getInitBoard()
                 self.histories[i] = []

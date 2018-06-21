@@ -51,8 +51,8 @@ class Coach:
             self.batch_ready.append(mp.Event())
 
     def learn(self):
-        for i in range(self.args.numIters):
-            print(f'------ITER {i+1}------')
+        for i in range(1, self.args.numIters+1):
+            print(f'------ITER {i}------')
             self.generateApprenticeAgents()
             self.processApprenticeBatches()
             self.generateExpertAgents()
@@ -101,7 +101,7 @@ class Coach:
 
     def killApprenticeAgents(self):
         for i in range(self.args.workers):
-            self.apprentices[i].terminate()
+            self.apprentices[i].join()
             self.batch_ready[i] = mp.Event()
         self.apprentices = []
         self.ready_queue = mp.Queue()
@@ -146,7 +146,7 @@ class Coach:
 
     def killExpertAgents(self):
         for i in range(self.args.workers):
-            self.experts[i].terminate()
+            self.experts[i].join()
             self.batch_ready[i] = mp.Event()
         self.experts = []
         self.ready_queue = mp.Queue()
@@ -157,18 +157,15 @@ class Coach:
         data_tensor = torch.zeros([self.args.gamesPerIteration, boardx, boardy])
         policy_tensor = torch.zeros([self.args.gamesPerIteration, self.game.getActionSize()])
         value_tensor = torch.zeros([self.args.gamesPerIteration, 1])
-        try:
-            for i in range(self.args.gamesPerIteration):
-                data, policy, value = self.file_queue.get_nowait()
-                data_tensor[i] = torch.from_numpy(data)
-                policy_tensor[i] = torch.tensor(policy)
-                value_tensor[i, 0] = value
+        for i in range(self.args.gamesPerIteration):
+            data, policy, value = self.file_queue.get(timeout=1)
+            data_tensor[i] = torch.from_numpy(data)
+            policy_tensor[i] = torch.tensor(policy)
+            value_tensor[i, 0] = value
 
-            torch.save(data_tensor, f'data/iteration-{iteration:04d}-data.pkl')
-            torch.save(policy_tensor, f'data/iteration-{iteration:04d}-policy.pkl')
-            torch.save(value_tensor, f'data/iteration-{iteration:04d}-value.pkl')
-        except Empty:
-            print("Error, Missing data.")
+        torch.save(data_tensor, f'data/iteration-{iteration:04d}-data.pkl')
+        torch.save(policy_tensor, f'data/iteration-{iteration:04d}-policy.pkl')
+        torch.save(value_tensor, f'data/iteration-{iteration:04d}-value.pkl')
 
     def train(self, iteration):
         datasets = []

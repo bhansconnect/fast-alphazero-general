@@ -9,15 +9,14 @@ args = dotdict({
     'batch_size': 128,
     'numIters': 1000,
     'gamesPerIteration': 25000,
-    'numMCTSSims': 25,
+    'numMCTSSims': 50,
     'numItersForTrainExamplesHistory': 10,
     'checkpoint': 'checkpoint',
-    'arenaCompare': 40,
+    'arenaCompare': 100,
     'load_model': False,
-    'load_folder_file': ('./checkpoint/','best.pkl'),
+    'load_folder_file': ('./checkpoint/','iteration-best.pkl'),
     'updateThreshold': 0.6,
-    'cpuct': 1,
-
+    'cpuct': 1
 })
 
 if __name__=="__main__":

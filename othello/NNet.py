@@ -60,7 +60,6 @@ class NNetWrapper(NeuralNet):
                 l_pi = self.loss_pi(target_pis, out_pi)
                 l_v = self.loss_v(target_vs, out_v)
                 total_loss = l_pi + l_v
-
                 # record loss
                 pi_losses.update(l_pi.item(), boards.size(0))
                 v_losses.update(l_v.item(), boards.size(0))
@@ -120,7 +119,7 @@ class NNetWrapper(NeuralNet):
         return -torch.sum(targets * outputs) / targets.size()[0]
 
     def loss_v(self, targets, outputs):
-        return torch.sum((targets - outputs.view(-1)) ** 2) / targets.size()[0]
+        return torch.sum((targets - outputs) ** 2) / targets.size()[0]
 
     def save_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         filepath = os.path.join(folder, filename)

@@ -32,6 +32,8 @@ class ExpertAgent(mp.Process):
             if self.samples > 0:
                 self.processSamples()
                 self.outputSamples()
+        with self.complete_count.get_lock():
+            self.complete_count.value += 1
 
     def getSamples(self):
         self.samples = 0
@@ -42,8 +44,6 @@ class ExpertAgent(mp.Process):
                 self.samples += 1
         except Empty:
             self.done = True
-            with self.complete_count.get_lock():
-                self.complete_count.value += 1
 
     def processSamples(self):
         for i in range(self.args.numMCTSSims):
@@ -64,5 +64,3 @@ class ExpertAgent(mp.Process):
                 self.output_queue.put_nowait((self.boards[i], policy, self.values[i]))
         except Full:
             self.done = True
-            with self.complete_count.get_lock():
-                self.complete_count.value += 1
