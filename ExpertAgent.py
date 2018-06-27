@@ -55,7 +55,7 @@ class ExpertAgent(mp.Process):
             self.batch_ready.wait()
             self.batch_ready.clear()
             for j in range(self.samples):
-                self.mcts[j].processResults(self.policy_tensor[j].data.numpy(), self.value_tensor[j].data.numpy())
+                self.mcts[j].processResults(self.policy_tensor[j].data.numpy(), self.value_tensor[j][0])
 
     def outputSamples(self):
         try:

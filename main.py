@@ -6,17 +6,25 @@ from utils import *
 
 args = dotdict({
     'workers': mp.cpu_count(),
-    'batch_size': 128,
-    'numIters': 1000,
+    'process_batch_size': 256,
+    'train_batch_size': 64,
+    'numIters': 10,
     'gamesPerIteration': 25000,
-    'numMCTSSims': 50,
-    'numItersForTrainExamplesHistory': 10,
+    'numMCTSSims': 100,
+    'numItersForTrainExamplesHistory': 1,
     'checkpoint': 'checkpoint',
+    'data': 'data',
     'arenaCompare': 100,
     'load_model': False,
     'load_folder_file': ('./checkpoint/','iteration-best.pkl'),
     'updateThreshold': 0.6,
-    'cpuct': 1
+    'tempThreshold': 40,
+    'cpuct': 1,
+    'arena': dotdict({
+        'cpuct': 1,
+        'temp': 0.1,
+        'numMCTSSims': 30,
+    })
 })
 
 if __name__=="__main__":

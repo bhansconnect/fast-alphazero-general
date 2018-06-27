@@ -54,6 +54,11 @@ class MCTS():
         probs = [x / float(sum(counts)) for x in counts]
         return probs
 
+    def getExpertValue(self, canonicalBoard):
+        s = self.game.stringRepresentation(canonicalBoard)
+        values = [self.Qsa[(s, a)] if (s, a) in self.Qsa else 0 for a in range(self.game.getActionSize())]
+        return np.max(values)
+
     def processResults(self, pi, value):
         if self.mode == 'leaf':
             s = self.path.pop()[0]

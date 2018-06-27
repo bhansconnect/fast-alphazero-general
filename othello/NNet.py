@@ -17,7 +17,6 @@ args = dotdict({
     'lr': 0.001,
     'dropout': 0.3,
     'epochs': 10,
-    'batch_size': 64,
     'cuda': torch.cuda.is_available(),
     'num_channels': 512,
 })
@@ -87,6 +86,7 @@ class NNetWrapper(NeuralNet):
                 bar.next()
             bar.finish()
             print()
+        return pi_losses.avg, v_losses.avg
 
     def predict(self, board):
         """

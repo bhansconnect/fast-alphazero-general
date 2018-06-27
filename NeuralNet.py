@@ -21,6 +21,9 @@ class NeuralNet():
                       (board, pi, v). pi is the MCTS informed policy vector for
                       the given board, and v is its value. The examples has
                       board in its canonical form.
+        Returns:
+            pi_loss: the policy loss at the end of training
+            v_loss: the value loss at the end of training
         """
         pass
 
