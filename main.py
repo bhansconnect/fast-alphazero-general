@@ -1,24 +1,26 @@
-from Coach import Coach
-from othello.OthelloGame import OthelloGame as Game
-from othello.NNet import NNetWrapper as nn
 from torch import multiprocessing as mp
+
+from Coach import Coach
+from othello.NNet import NNetWrapper as nn
+from othello.OthelloGame import OthelloGame as Game
 from utils import *
 
 args = dotdict({
-    'workers': mp.cpu_count(),
+    # Because of batching, expect about workers * train_batch_size * num_moves_in_a_game samples to generate at the same time
+    'workers': mp.cpu_count() - 1,
     'process_batch_size': 256,
     'train_batch_size': 64,
-    'numIters': 10,
-    'gamesPerIteration': 25000,
-    'numMCTSSims': 100,
+    'numIters': 1000,
+    'gamesPerIteration': 24000,
+    'numMCTSSims': 30,
     'numItersForTrainExamplesHistory': 1,
     'checkpoint': 'checkpoint',
     'data': 'data',
-    'arenaCompare': 100,
+    'arenaCompare': 500,
     'load_model': False,
-    'load_folder_file': ('./checkpoint/','iteration-best.pkl'),
+    'load_folder_file': ('./checkpoint/', 'iteration-best.pkl'),
     'updateThreshold': 0.6,
-    'tempThreshold': 40,
+    'tempThreshold': 15,
     'cpuct': 1,
     'arena': dotdict({
         'cpuct': 1,
@@ -27,7 +29,7 @@ args = dotdict({
     })
 })
 
-if __name__=="__main__":
+if __name__ == "__main__":
     g = Game(6)
     nnet = nn(g)
 
