@@ -6,27 +6,23 @@ from othello.OthelloGame import OthelloGame as Game
 from utils import *
 
 args = dotdict({
-    # Because of batching, expect about workers * train_batch_size * num_moves_in_a_game samples to generate at the same time
     'workers': mp.cpu_count() - 1,
+    'numIters': 10,
     'process_batch_size': 256,
     'train_batch_size': 64,
-    'numIters': 1000,
-    'gamesPerIteration': 24000,
-    'numMCTSSims': 30,
-    'numItersForTrainExamplesHistory': 1,
-    'checkpoint': 'checkpoint',
-    'data': 'data',
-    'arenaCompare': 500,
-    'load_model': False,
-    'load_folder_file': ('./checkpoint/', 'iteration-best.pkl'),
+    #should preferably be a multiple of process_batch_size and workers
+    'gamesPerIteration': 768,
+    'numItersForTrainExamplesHistory': 10,
     'updateThreshold': 0.6,
+    'arenaCompare': 500,
+    'arenaTemp': 0.1,
+    'numMCTSSims': 30,
     'tempThreshold': 15,
     'cpuct': 1,
-    'arena': dotdict({
-        'cpuct': 1,
-        'temp': 0.1,
-        'numMCTSSims': 30,
-    })
+    'checkpoint': 'checkpoint',
+    'data': 'data',
+    'load_model': False,
+    'load_folder_file': ('./checkpoint/', 'iteration-best.pkl'),
 })
 
 if __name__ == "__main__":

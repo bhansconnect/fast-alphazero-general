@@ -34,6 +34,9 @@ class NNetWrapper(NeuralNet):
     def train(self, batches):
         optimizer = optim.Adam(self.nnet.parameters())
 
+        overall_v_losses = AverageMeter()
+        overall_pi_losses = AverageMeter()
+
         for epoch in range(args.epochs):
             self.nnet.train()
             data_time = AverageMeter()
@@ -85,8 +88,10 @@ class NNetWrapper(NeuralNet):
                 )
                 bar.next()
             bar.finish()
+            overall_v_losses.update(v_losses)
+            overall_pi_losses.update(pi_losses)
             print()
-        return pi_losses.avg, v_losses.avg
+        return overall_pi_losses.avg, overall_v_losses.avg
 
     def predict(self, board):
         """

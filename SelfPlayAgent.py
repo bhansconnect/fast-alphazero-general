@@ -9,7 +9,7 @@ from MCTS import MCTS
 class SelfPlayAgent(mp.Process):
 
     def __init__(self, id, game, ready_queue, batch_ready, batch_tensor, policy_tensor, value_tensor, output_queue,
-                 complete_count, completed_event, args):
+                 complete_count, games_played, args):
         super().__init__()
         self.id = id
         self.game = game
@@ -26,8 +26,8 @@ class SelfPlayAgent(mp.Process):
         self.player = []
         self.turn = []
         self.mcts = []
+        self.games_played = games_played
         self.complete_count = complete_count
-        self.completed_event = completed_event
         self.args = args
         self.valid = torch.zeros_like(self.policy_tensor)
         for _ in range(self.batch_size):
@@ -39,7 +39,7 @@ class SelfPlayAgent(mp.Process):
             self.canonical.append(None)
 
     def run(self):
-        while not self.completed_event.is_set():
+        while self.games_played.value < self.args.gamesPerIteration:
             self.generateCanonical()
             for i in range(self.args.numMCTSSims):
                 self.generateBatch()
@@ -75,8 +75,9 @@ class SelfPlayAgent(mp.Process):
                     for hist in self.histories[i]:
                         self.output_queue.put_nowait((hist[0], hist[1], winner*hist[2]))
                 except Full:
-                    self.completed_event.set()
-                    return
+                    pass
+                with self.games_played.get_lock():
+                    self.games_played.value += 1
                 self.games[i] = self.game.getInitBoard()
                 self.histories[i] = []
                 self.player[i] = 1
