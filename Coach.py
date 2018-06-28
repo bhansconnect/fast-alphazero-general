@@ -50,6 +50,8 @@ class Coach:
             self.batch_ready.append(mp.Event())
 
     def learn(self):
+        print('Because of batching, it can take a long time before any games finish.')
+        print('After the first game finishes, expect the rest to follow very quickly')
         for i in range(1, self.args.numIters + 1):
             print(f'------ITER {i}------')
             self.generateSelfPlayAgents()

@@ -73,7 +73,12 @@ class SelfPlayAgent(mp.Process):
             if winner != 0:
                 try:
                     for hist in self.histories[i]:
-                        self.output_queue.put_nowait((hist[0], hist[1], winner*hist[2]))
+                        if self.args.symmetricSamples:
+                            sym = self.game.getSymmetries(hist[0], hist[1])
+                            for b, p in sym:
+                                self.output_queue.put_nowait((b, p, winner*hist[2]))
+                        else:
+                            self.output_queue.put_nowait((hist[0], hist[1], winner*hist[2]))
                 except Full:
                     pass
                 with self.games_played.get_lock():

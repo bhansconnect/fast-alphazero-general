@@ -13,6 +13,7 @@ args = dotdict({
     #should preferably be a multiple of process_batch_size and workers
     'gamesPerIteration': 768,
     'numItersForTrainExamplesHistory': 10,
+    'symmetricSamples': False,
     'updateThreshold': 0.6,
     'arenaCompare': 500,
     'arenaTemp': 0.1,
