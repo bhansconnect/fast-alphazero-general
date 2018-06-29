@@ -88,8 +88,8 @@ class NNetWrapper(NeuralNet):
                 )
                 bar.next()
             bar.finish()
-            overall_v_losses.update(v_losses)
-            overall_pi_losses.update(pi_losses)
+            overall_v_losses.update(v_losses.avg)
+            overall_pi_losses.update(pi_losses.avg)
             print()
         return overall_pi_losses.avg, overall_v_losses.avg
 

@@ -47,6 +47,8 @@ class SelfPlayAgent(mp.Process):
             self.playMoves()
         with self.complete_count.get_lock():
             self.complete_count.value += 1
+        self.output_queue.close()
+        self.output_queue.join_thread()
 
     def generateBatch(self):
         for i in range(self.batch_size):
@@ -71,16 +73,13 @@ class SelfPlayAgent(mp.Process):
             self.turn[i] += 1
             winner = self.game.getGameEnded(self.games[i], 1)
             if winner != 0:
-                try:
-                    for hist in self.histories[i]:
-                        if self.args.symmetricSamples:
-                            sym = self.game.getSymmetries(hist[0], hist[1])
-                            for b, p in sym:
-                                self.output_queue.put_nowait((b, p, winner*hist[2]))
-                        else:
-                            self.output_queue.put_nowait((hist[0], hist[1], winner*hist[2]))
-                except Full:
-                    pass
+                for hist in self.histories[i]:
+                    if self.args.symmetricSamples:
+                        sym = self.game.getSymmetries(hist[0], hist[1])
+                        for b, p in sym:
+                            self.output_queue.put((b, p, winner*hist[2]))
+                    else:
+                        self.output_queue.put((hist[0], hist[1], winner*hist[2]))
                 with self.games_played.get_lock():
                     self.games_played.value += 1
                 self.games[i] = self.game.getInitBoard()

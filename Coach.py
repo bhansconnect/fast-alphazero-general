@@ -51,7 +51,6 @@ class Coach:
 
     def learn(self):
         print('Because of batching, it can take a long time before any games finish.')
-        print('After the first game finishes, expect the rest to follow very quickly')
         for i in range(1, self.args.numIters + 1):
             print(f'------ITER {i}------')
             self.generateSelfPlayAgents()
@@ -108,24 +107,24 @@ class Coach:
         self.games_played = mp.Value('i', 0)
 
     def saveIterationSamples(self, iteration):
+        num_samples = self.file_queue.qsize()
+        print(f'Saving {num_samples} samples')
         boardx, boardy = self.game.getBoardSize()
-        data_tensor = torch.zeros([self.file_queue.qsize(), boardx, boardy])
-        policy_tensor = torch.zeros([self.file_queue.qsize(), self.game.getActionSize()])
-        value_tensor = torch.zeros([self.file_queue.qsize(), 1])
-        i = 0
-        try:
-            while i < self.file_queue.qsize():
-                data, policy, value = self.file_queue.get(timeout=1)
-                data_tensor[i] = torch.from_numpy(data)
-                policy_tensor[i] = torch.tensor(policy)
-                value_tensor[i, 0] = value
-                i += 1
-        except Empty:
-            pass
+        data_tensor = torch.zeros([num_samples, boardx, boardy])
+        policy_tensor = torch.zeros([num_samples, self.game.getActionSize()])
+        value_tensor = torch.zeros([num_samples, 1])
+        for i in range(num_samples):
+            data, policy, value = self.file_queue.get()
+            data_tensor[i] = torch.from_numpy(data)
+            policy_tensor[i] = torch.tensor(policy)
+            value_tensor[i, 0] = value
 
-        torch.save(data_tensor[:1], f'{self.args.data}/iteration-{iteration:04d}-data.pkl')
-        torch.save(policy_tensor[:1], f'{self.args.data}/iteration-{iteration:04d}-policy.pkl')
-        torch.save(value_tensor[:1], f'{self.args.data}/iteration-{iteration:04d}-value.pkl')
+        torch.save(data_tensor, f'{self.args.data}/iteration-{iteration:04d}-data.pkl')
+        torch.save(policy_tensor, f'{self.args.data}/iteration-{iteration:04d}-policy.pkl')
+        torch.save(value_tensor, f'{self.args.data}/iteration-{iteration:04d}-value.pkl')
+        del data_tensor
+        del policy_tensor
+        del value_tensor
 
     def train(self, iteration):
         datasets = []
