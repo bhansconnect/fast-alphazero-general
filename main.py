@@ -7,9 +7,9 @@ from utils import *
 
 args = dotdict({
     'workers': mp.cpu_count() - 1,
-    'numIters': 10,
-    'process_batch_size': 256,
-    'train_batch_size': 64,
+    'numIters': 100,
+    'process_batch_size': 64,
+    'train_batch_size': 512,
     #should preferably be a multiple of process_batch_size and workers
     'gamesPerIteration': 768,
     'numItersForTrainExamplesHistory': 10,

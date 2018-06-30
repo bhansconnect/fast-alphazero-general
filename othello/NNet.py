@@ -27,18 +27,17 @@ class NNetWrapper(NeuralNet):
         self.nnet = onnet(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
+        self.optimizer = optim.Adam(self.nnet.parameters())
 
         if args.cuda:
             self.nnet.cuda()
 
     def train(self, batches):
-        optimizer = optim.Adam(self.nnet.parameters())
-
+        self.nnet.train()
         overall_v_losses = AverageMeter()
         overall_pi_losses = AverageMeter()
 
         for epoch in range(args.epochs):
-            self.nnet.train()
             data_time = AverageMeter()
             batch_time = AverageMeter()
             pi_losses = AverageMeter()
@@ -67,9 +66,9 @@ class NNetWrapper(NeuralNet):
                 v_losses.update(l_v.item(), boards.size(0))
 
                 # compute gradient and do SGD step
-                optimizer.zero_grad()
+                self.optimizer.zero_grad()
                 total_loss.backward()
-                optimizer.step()
+                self.optimizer.step()
 
                 # measure elapsed time
                 batch_time.update(time() - end)
