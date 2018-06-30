@@ -1,33 +1,32 @@
-from Coach import Coach
-from othello.OthelloGame import OthelloGame as Game
-from othello.NNet import NNetWrapper as nn
 from torch import multiprocessing as mp
+
+from Coach import Coach
+from othello.NNet import NNetWrapper as nn
+from othello.OthelloGame import OthelloGame as Game
 from utils import *
 
 args = dotdict({
-    'workers': mp.cpu_count(),
-    'process_batch_size': 256,
-    'train_batch_size': 64,
-    'numIters': 10,
-    'gamesPerIteration': 25000,
-    'numMCTSSims': 100,
-    'numItersForTrainExamplesHistory': 1,
+    'workers': mp.cpu_count() - 1,
+    'numIters': 100,
+    'process_batch_size': 64,
+    'train_batch_size': 512,
+    #should preferably be a multiple of process_batch_size and workers
+    'gamesPerIteration': 768,
+    'numItersForTrainExamplesHistory': 10,
+    'symmetricSamples': False,
+    'updateThreshold': 0.6,
+    'arenaCompare': 500,
+    'arenaTemp': 0.1,
+    'numMCTSSims': 30,
+    'tempThreshold': 15,
+    'cpuct': 1,
     'checkpoint': 'checkpoint',
     'data': 'data',
-    'arenaCompare': 100,
     'load_model': False,
-    'load_folder_file': ('./checkpoint/','iteration-best.pkl'),
-    'updateThreshold': 0.6,
-    'tempThreshold': 40,
-    'cpuct': 1,
-    'arena': dotdict({
-        'cpuct': 1,
-        'temp': 0.1,
-        'numMCTSSims': 30,
-    })
+    'load_folder_file': ('./checkpoint/', 'iteration-best.pkl'),
 })
 
-if __name__=="__main__":
+if __name__ == "__main__":
     g = Game(6)
     nnet = nn(g)
 
