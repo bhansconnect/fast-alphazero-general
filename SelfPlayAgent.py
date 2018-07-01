@@ -73,20 +73,25 @@ class SelfPlayAgent(mp.Process):
             self.turn[i] += 1
             winner = self.game.getGameEnded(self.games[i], 1)
             if winner != 0:
-                for hist in self.histories[i]:
-                    if self.args.symmetricSamples:
-                        sym = self.game.getSymmetries(hist[0], hist[1])
-                        for b, p in sym:
-                            self.output_queue.put((b, p, winner*hist[2]))
-                    else:
-                        self.output_queue.put((hist[0], hist[1], winner*hist[2]))
-                with self.games_played.get_lock():
+                lock = self.games_played.get_lock()
+                lock.acquire()
+                if self.games_played.value < self.args.gamesPerIteration:
                     self.games_played.value += 1
-                self.games[i] = self.game.getInitBoard()
-                self.histories[i] = []
-                self.player[i] = 1
-                self.turn[i] = 1
-                self.mcts[i] = MCTS(self.game, None, self.args)
+                    lock.release()
+                    for hist in self.histories[i]:
+                        if self.args.symmetricSamples:
+                            sym = self.game.getSymmetries(hist[0], hist[1])
+                            for b, p in sym:
+                                self.output_queue.put((b, p, winner*hist[2]))
+                        else:
+                            self.output_queue.put((hist[0], hist[1], winner*hist[2]))
+                    self.games[i] = self.game.getInitBoard()
+                    self.histories[i] = []
+                    self.player[i] = 1
+                    self.turn[i] = 1
+                    self.mcts[i] = MCTS(self.game, None, self.args)
+                else:
+                    lock.release()
 
     def generateCanonical(self):
         for i in range(self.batch_size):
