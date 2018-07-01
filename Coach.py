@@ -157,7 +157,7 @@ class Coach:
         pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
 
         print(f'NEW/BEST WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
-        self.writer.add_scalar(f'win_rate/best', float(nwins) / (pwins + nwins), iteration)
+        self.writer.add_scalar(f'win_rate/best', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
         if not (pwins + nwins > 0 and float(nwins) / (pwins + nwins) < self.args.updateThreshold):
             print('ACCEPTING NEW BEST MODEL')
             self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='iteration-best.pkl')
@@ -172,4 +172,4 @@ class Coach:
         pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
 
         print('NEW/RANDOM WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
-        self.writer.add_scalar('win_rate/random', float(nwins) / (pwins + nwins), iteration)
+        self.writer.add_scalar(f'win_rate/best', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
