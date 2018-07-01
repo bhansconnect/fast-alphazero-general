@@ -3,13 +3,10 @@ import torch
 from torch import multiprocessing as mp
 from torch.utils.data import TensorDataset, ConcatDataset, DataLoader
 from tensorboardX import SummaryWriter
-
 from Arena import Arena
-from MCTS import MCTS
-from othello.OthelloPlayers import RandomPlayer, GreedyOthelloPlayer, NNPlayer
+from GenericPlayers import RandomPlayer, NNPlayer
 from pytorch_classification.utils import Bar, AverageMeter
 from queue import Empty
-import numpy as np
 from time import time
 
 
@@ -58,8 +55,9 @@ class Coach:
             self.saveIterationSamples(i)
             self.killSelfPlayAgents()
             self.train(i)
+            if i == 1:
+                print('Note: Comparisons do not use monte carlo tree search.')
             self.compareToRandom(i)
-            self.compareToGreedy(i)
             self.compareToBest(i)
             print()
 
@@ -175,15 +173,3 @@ class Coach:
 
         print('NEW/RANDOM WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
         self.writer.add_scalar('win_rate/random', float(nwins) / (pwins + nwins), iteration)
-
-    def compareToGreedy(self, iteration):
-        self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='iteration-best.pkl')
-        g = GreedyOthelloPlayer(self.game)
-        nnplayer = NNPlayer(self.game, self.nnet, self.args.arenaTemp)
-        print('PITTING AGAINST GREEDY')
-
-        arena = Arena(g.play, nnplayer.play, self.game)
-        pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
-
-        print('NEW/GREEDY WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
-        self.writer.add_scalar('win_rate/greedy', float(nwins) / (pwins + nwins), iteration)

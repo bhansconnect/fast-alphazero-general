@@ -1,18 +1,3 @@
-import numpy as np
-
-
-class RandomPlayer:
-    def __init__(self, game):
-        self.game = game
-
-    def play(self, board):
-        a = np.random.randint(self.game.getActionSize())
-        valids = self.game.getValidMoves(board, 1)
-        while valids[a] != 1:
-            a = np.random.randint(self.game.getActionSize())
-        return a
-
-
 class HumanOthelloPlayer:
     def __init__(self, game):
         self.game = game
@@ -51,24 +36,3 @@ class GreedyOthelloPlayer:
             candidates += [(-score, a)]
         candidates.sort()
         return candidates[0][1]
-
-
-class NNPlayer:
-    def __init__(self, game, nn, temp=1):
-        self.game = game
-        self.nn = nn
-        self.temp = temp
-
-    def play(self, board):
-        policy, _ = self.nn.predict(board)
-        valids = self.game.getValidMoves(board, 1)
-        options = policy * valids
-        if self.temp == 0:
-            bestA = np.argmax(options)
-            probs = [0] * len(options)
-            probs[bestA] = 1
-        else:
-            probs = [x ** (1. / self.temp) for x in options]
-            probs /= np.sum(probs)
-
-        return np.random.choice(np.arange(self.game.getActionSize()), p=probs)
