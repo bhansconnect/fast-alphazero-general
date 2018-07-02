@@ -1,5 +1,6 @@
 import Arena
 from MCTS import MCTS
+from GenericPlayers import *
 from othello.OthelloGame import OthelloGame, display
 from othello.OthelloPlayers import *
 from othello.NNet import NNetWrapper as NNet

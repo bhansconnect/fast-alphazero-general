@@ -19,6 +19,11 @@ args = dotdict({
     'arenaTemp': 0.1,
     'numMCTSSims': 30,
     'tempThreshold': 15,
+    'expertValueWeight': dotdict({
+        'start': 0,
+        'end': 1,
+        'iterations': 20
+    }),
     'cpuct': 1,
     'checkpoint': 'checkpoint',
     'data': 'data',

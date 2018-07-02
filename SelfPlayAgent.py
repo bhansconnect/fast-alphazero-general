@@ -1,7 +1,6 @@
-import torch.multiprocessing as mp
-import torch
 import numpy as np
-from queue import Full
+import torch
+import torch.multiprocessing as mp
 
 from MCTS import MCTS
 
@@ -68,7 +67,8 @@ class SelfPlayAgent(mp.Process):
             temp = int(self.turn[i] < self.args.tempThreshold)
             policy = self.mcts[i].getExpertProb(self.canonical[i], temp)
             action = np.random.choice(len(policy), p=policy)
-            self.histories[i].append((self.canonical[i], self.mcts[i].getExpertProb(self.canonical[i]), self.player[i]))
+            self.histories[i].append((self.canonical[i], self.mcts[i].getExpertProb(self.canonical[i]),
+                                      self.mcts[i].getExpertValue(self.canonical[i]), self.player[i]))
             self.games[i], self.player[i] = self.game.getNextState(self.games[i], self.player[i], action)
             self.turn[i] += 1
             winner = self.game.getGameEnded(self.games[i], 1)
@@ -82,9 +82,13 @@ class SelfPlayAgent(mp.Process):
                         if self.args.symmetricSamples:
                             sym = self.game.getSymmetries(hist[0], hist[1])
                             for b, p in sym:
-                                self.output_queue.put((b, p, winner*hist[2]))
+                                self.output_queue.put((b, p,
+                                                       winner * hist[3] * (1 - self.args.expertValueWeight.current)
+                                                       + self.args.expertValueWeight.current * hist[2]))
                         else:
-                            self.output_queue.put((hist[0], hist[1], winner*hist[2]))
+                            self.output_queue.put((hist[0], hist[1],
+                                                   winner * hist[3] * (1 - self.args.expertValueWeight.current)
+                                                   + self.args.expertValueWeight.current * hist[2]))
                     self.games[i] = self.game.getInitBoard()
                     self.histories[i] = []
                     self.player[i] = 1

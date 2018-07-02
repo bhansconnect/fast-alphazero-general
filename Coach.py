@@ -30,6 +30,7 @@ class Coach:
         self.games_played = mp.Value('i', 0)
         self.writer = SummaryWriter()
         boardx, boardy = self.game.getBoardSize()
+        self.args.expertValueWeight.current = self.args.expertValueWeight.start
 
         for i in range(self.args.workers):
             self.input_tensors.append(torch.zeros([self.args.process_batch_size, boardx, boardy]))
@@ -59,7 +60,8 @@ class Coach:
                 print('Note: Comparisons do not use monte carlo tree search.')
             self.compareToRandom(i)
             self.compareToBest(i)
-            print()
+            z = self.args.expertValueWeight
+            self.args.expertValueWeight.current = min(i, z.iterations)/z.iterations * (z.end - z.start) + z.start
 
     def generateSelfPlayAgents(self):
         self.ready_queue = mp.Queue()
@@ -172,4 +174,4 @@ class Coach:
         pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
 
         print('NEW/RANDOM WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
-        self.writer.add_scalar(f'win_rate/best', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
+        self.writer.add_scalar(f'win_rate/random', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
