@@ -31,23 +31,7 @@ class Coach:
         self.completed = mp.Value('i', 0)
         self.games_played = mp.Value('i', 0)
         self.writer = SummaryWriter()
-        boardx, boardy = self.game.getBoardSize()
         self.args.expertValueWeight.current = self.args.expertValueWeight.start
-
-        for i in range(self.args.workers):
-            self.input_tensors.append(torch.zeros([self.args.process_batch_size, boardx, boardy]))
-            self.input_tensors[i].pin_memory()
-            self.input_tensors[i].share_memory_()
-
-            self.policy_tensors.append(torch.zeros([self.args.process_batch_size, self.game.getActionSize()]))
-            self.policy_tensors[i].pin_memory()
-            self.policy_tensors[i].share_memory_()
-
-            self.value_tensors.append(torch.zeros([self.args.process_batch_size, 1]))
-            self.value_tensors[i].pin_memory()
-            self.value_tensors[i].share_memory_()
-
-            self.batch_ready.append(mp.Event())
 
     def learn(self):
         print('Because of batching, it can take a long time before any games finish.')
@@ -70,7 +54,21 @@ class Coach:
 
     def generateSelfPlayAgents(self):
         self.ready_queue = mp.Queue()
+        boardx, boardy = self.game.getBoardSize()
         for i in range(self.args.workers):
+            self.input_tensors.append(torch.zeros([self.args.process_batch_size, boardx, boardy]))
+            self.input_tensors[i].pin_memory()
+            self.input_tensors[i].share_memory_()
+
+            self.policy_tensors.append(torch.zeros([self.args.process_batch_size, self.game.getActionSize()]))
+            self.policy_tensors[i].pin_memory()
+            self.policy_tensors[i].share_memory_()
+
+            self.value_tensors.append(torch.zeros([self.args.process_batch_size, 1]))
+            self.value_tensors[i].pin_memory()
+            self.value_tensors[i].share_memory_()
+            self.batch_ready.append(mp.Event())
+
             self.agents.append(
                 SelfPlayAgent(i, self.game, self.ready_queue, self.batch_ready[i],
                               self.input_tensors[i], self.policy_tensors[i], self.value_tensors[i], self.file_queue,
@@ -105,8 +103,15 @@ class Coach:
     def killSelfPlayAgents(self):
         for i in range(self.args.workers):
             self.agents[i].join()
-            self.batch_ready[i] = mp.Event()
+            del self.input_tensors[0]
+            del self.policy_tensors[0]
+            del self.value_tensors[0]
+            del self.batch_ready[0]
         self.agents = []
+        self.input_tensors = []
+        self.policy_tensors = []
+        self.value_tensors = []
+        self.batch_ready = []
         self.ready_queue = mp.Queue()
         self.completed = mp.Value('i', 0)
         self.games_played = mp.Value('i', 0)
