@@ -19,6 +19,10 @@ args = dotdict({
     'arenaTemp': 0.1,
     'numMCTSSims': 30,
     'tempThreshold': 15,
+    'compareWithRandom': True,
+    'randomCompareFreq': 1,
+    'compareWithPast': True,
+    'pastCompareFreq': 5,
     'expertValueWeight': dotdict({
         'start': 0,
         'end': 1,

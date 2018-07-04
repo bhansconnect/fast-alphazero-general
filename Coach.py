@@ -58,12 +58,15 @@ class Coach:
             self.saveIterationSamples(i)
             self.killSelfPlayAgents()
             self.train(i)
-            if i == 1:
-                print('Note: Comparisons with Random do not use monte carlo tree search.')
-            self.compareToRandom(i)
-            self.compareToLast(i)
+            if self.args.compareWithRandom and (i-1) % self.args.randomCompareFreq == 0:
+                if i == 1:
+                    print('Note: Comparisons with Random do not use monte carlo tree search.')
+                self.compareToRandom(i)
+            if self.args.compareWithPast and (i - 1) % self.args.pastCompareFreq == 0:
+                self.compareToPast(i)
             z = self.args.expertValueWeight
             self.args.expertValueWeight.current = min(i, z.iterations)/z.iterations * (z.end - z.start) + z.start
+            print()
 
     def generateSelfPlayAgents(self):
         self.ready_queue = mp.Queue()
@@ -151,18 +154,20 @@ class Coach:
         del dataset
         del datasets
 
-    def compareToLast(self, iteration):
-        self.pnet.load_checkpoint(folder=self.args.checkpoint, filename=f'iteration-{iteration-1:04d}.pkl')
+    def compareToPast(self, iteration):
+        past = max(0,iteration-self.args.pastCompareFreq)
+        self.pnet.load_checkpoint(folder=self.args.checkpoint,
+                                  filename=f'iteration-{past:04d}.pkl')
         pplayer = MCTS(self.game, self.pnet, self.args)
         nplayer = MCTS(self.game, self.nnet, self.args)
-        print(f'PITTING AGAINST LAST VERSION')
+        print(f'PITTING AGAINST ITERATION {past}')
 
         arena = Arena(lambda x: np.argmax(pplayer.getActionProb(x, temp=self.args.arenaTemp)),
                       lambda x: np.argmax(nplayer.getActionProb(x, temp=self.args.arenaTemp)), self.game)
         pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
 
-        print(f'NEW/LAST WINS : {nwins} / {pwins} ; DRAWS : {draws}')
-        self.writer.add_scalar('win_rate/last', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
+        print(f'NEW/PAST WINS : {nwins} / {pwins} ; DRAWS : {draws}')
+        self.writer.add_scalar('win_rate/past', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
 
     def compareToRandom(self, iteration):
         r = RandomPlayer(self.game)
