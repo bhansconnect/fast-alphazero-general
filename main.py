@@ -15,7 +15,7 @@ args = dotdict({
     'numItersForTrainExamplesHistory': 10,
     'symmetricSamples': False,
     'updateThreshold': 0.6,
-    'arenaCompare': 500,
+    'arenaCompare': 50,
     'arenaTemp': 0.1,
     'numMCTSSims': 30,
     'tempThreshold': 15,

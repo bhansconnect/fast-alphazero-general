@@ -1,3 +1,4 @@
+from MCTS import MCTS
 from SelfPlayAgent import SelfPlayAgent
 import torch
 from torch import multiprocessing as mp
@@ -8,6 +9,7 @@ from GenericPlayers import RandomPlayer, NNPlayer
 from pytorch_classification.utils import Bar, AverageMeter
 from queue import Empty
 from time import time
+import numpy as np
 
 
 class Coach:
@@ -17,7 +19,7 @@ class Coach:
         self.pnet = self.nnet.__class__(self.game)
         self.args = args
 
-        self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=f'iteration-best.pkl')
+        self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='iteration-0000.pkl')
 
         self.agents = []
         self.input_tensors = []
@@ -57,9 +59,9 @@ class Coach:
             self.killSelfPlayAgents()
             self.train(i)
             if i == 1:
-                print('Note: Comparisons do not use monte carlo tree search.')
+                print('Note: Comparisons with Random do not use monte carlo tree search.')
             self.compareToRandom(i)
-            self.compareToBest(i)
+            self.compareToLast(i)
             z = self.args.expertValueWeight
             self.args.expertValueWeight.current = min(i, z.iterations)/z.iterations * (z.end - z.start) + z.start
 
@@ -136,7 +138,7 @@ class Coach:
 
         dataset = ConcatDataset(datasets)
         dataloader = DataLoader(dataset, batch_size=self.args.train_batch_size, shuffle=True,
-                                num_workers=self.args.workers)
+                                num_workers=self.args.workers, pin_memory=True)
 
         l_pi, l_v = self.nnet.train(dataloader)
         self.writer.add_scalar('loss/policy', l_pi, iteration)
@@ -149,23 +151,20 @@ class Coach:
         del dataset
         del datasets
 
-    def compareToBest(self, iteration):
-        self.pnet.load_checkpoint(folder=self.args.checkpoint, filename=f'iteration-best.pkl')
-        pplayer = NNPlayer(self.game, self.pnet, self.args.arenaTemp)
-        nplayer = NNPlayer(self.game, self.nnet, self.args.arenaTemp)
-        print(f'PITTING AGAINST BEST VERSION')
+    def compareToLast(self, iteration):
+        self.pnet.load_checkpoint(folder=self.args.checkpoint, filename=f'iteration-{iteration-1:04d}.pkl')
+        pplayer = MCTS(self.game, self.pnet, self.args)
+        nplayer = MCTS(self.game, self.nnet, self.args)
+        print(f'PITTING AGAINST LAST VERSION')
 
-        arena = Arena(pplayer.play, nplayer.play, self.game)
+        arena = Arena(lambda x: np.argmax(pplayer.getActionProb(x, temp=self.args.arenaTemp)),
+                      lambda x: np.argmax(nplayer.getActionProb(x, temp=self.args.arenaTemp)), self.game)
         pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
 
-        print(f'NEW/BEST WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
-        self.writer.add_scalar(f'win_rate/best', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
-        if not (pwins + nwins > 0 and float(nwins) / (pwins + nwins) < self.args.updateThreshold):
-            print('ACCEPTING NEW BEST MODEL')
-            self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='iteration-best.pkl')
+        print(f'NEW/LAST WINS : {nwins} / {pwins} ; DRAWS : {draws}')
+        self.writer.add_scalar('win_rate/last', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
 
     def compareToRandom(self, iteration):
-        self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='iteration-best.pkl')
         r = RandomPlayer(self.game)
         nnplayer = NNPlayer(self.game, self.nnet, self.args.arenaTemp)
         print('PITTING AGAINST RANDOM')
@@ -173,5 +172,5 @@ class Coach:
         arena = Arena(r.play, nnplayer.play, self.game)
         pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
 
-        print('NEW/RANDOM WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
-        self.writer.add_scalar(f'win_rate/random', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
+        print(f'NEW/RANDOM WINS : {nwins} / {pwins} ; DRAWS : {draws}')
+        self.writer.add_scalar('win_rate/random', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
