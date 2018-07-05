@@ -20,6 +20,7 @@ args = dotdict({
     'numMCTSSims': 30,
     'tempThreshold': 15,
     'compareWithRandom': True,
+    'arenaCompareRandom': 500,
     'randomCompareFreq': 1,
     'compareWithPast': True,
     'pastCompareFreq': 5,

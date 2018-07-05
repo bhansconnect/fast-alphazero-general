@@ -180,7 +180,7 @@ class Coach:
         print('PITTING AGAINST RANDOM')
 
         arena = Arena(r.play, nnplayer.play, self.game)
-        pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
+        pwins, nwins, draws = arena.playGames(self.args.arenaCompareRandom)
 
         print(f'NEW/RANDOM WINS : {nwins} / {pwins} ; DRAWS : {draws}')
         self.writer.add_scalar('win_rate/random', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
