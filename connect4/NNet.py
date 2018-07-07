@@ -112,7 +112,7 @@ class NNetWrapper(NeuralNet):
 
     def process(self, batch):
         if args.cuda:
-            batch = batch.cuda(non_blocking=True)
+            batch = batch.cuda()
         self.nnet.eval()
         with torch.no_grad():
             pi, v = self.nnet(batch)

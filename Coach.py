@@ -85,8 +85,8 @@ class Coach:
             try:
                 id = self.ready_queue.get(timeout=1)
                 self.policy, self.value = self.nnet.process(self.input_tensors[id])
-                self.policy_tensors[id].copy_(self.policy, non_blocking=True)
-                self.value_tensors[id].copy_(self.value, non_blocking=True)
+                self.policy_tensors[id].copy_(self.policy)
+                self.value_tensors[id].copy_(self.value)
                 self.batch_ready[id].set()
             except Empty:
                 pass
