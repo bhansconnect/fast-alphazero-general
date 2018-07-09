@@ -3,7 +3,7 @@ An implementation of [Expert Iterations](https://davidbarber.github.io/blog/2017
 
 This project only supports [Pytorch](https://pytorch.org/) models because of Pytorch's support for multiproccesing.
 
-By combining Expert Iterations parallelism and AlphaZeros training strategies, this project is able to increase throughput on commodity hardware. This means better models for the average user in less time. On top of combining the two projects, the ability to slow change the value target from wins and losses to monte carlo value allows for the training to go more smoothly and reach more robust results in the same amount of time.
+By combining Expert Iterations' parallelism and AlphaZero's training strategies, this project is able to increase throughput on commodity hardware. This means better models for the average user in less time. On top of combining the two projects, the ability to slow change the value target from wins and losses to monte carlo value allows for the training to go more smoothly and reach more robust results in the same amount of time.
 
 To use a game of your choice, subclass the classes in ```Game.py``` and ```NeuralNet.py``` and implement their functions. Example implementations for Othello can be found in ```othello/OthelloGame.py``` and ```othello/NNet.py```. 
 
