@@ -10,6 +10,7 @@ from pytorch_classification.utils import Bar, AverageMeter
 from queue import Empty
 from time import time
 import numpy as np
+import os
 
 
 class Coach:
@@ -128,6 +129,8 @@ class Coach:
             data_tensor[i] = torch.from_numpy(data)
             policy_tensor[i] = torch.tensor(policy)
             value_tensor[i, 0] = value
+
+        os.makedirs(self.args.data, exist_ok=True)
 
         torch.save(data_tensor, f'{self.args.data}/iteration-{iteration:04d}-data.pkl')
         torch.save(policy_tensor, f'{self.args.data}/iteration-{iteration:04d}-policy.pkl')
