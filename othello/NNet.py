@@ -9,7 +9,6 @@ from pytorch_classification.utils import Bar, AverageMeter
 from time import time
 
 import torch
-from torch.autograd import Variable
 import torch.optim as optim
 from .OthelloNNet import OthelloNNet as onnet
 
@@ -32,26 +31,28 @@ class NNetWrapper(NeuralNet):
         if args.cuda:
             self.nnet.cuda()
 
-    def train(self, batches):
+    def train(self, batches, train_steps):
         self.nnet.train()
-        overall_v_losses = AverageMeter()
-        overall_pi_losses = AverageMeter()
 
-        for epoch in range(args.epochs):
-            data_time = AverageMeter()
-            batch_time = AverageMeter()
-            pi_losses = AverageMeter()
-            v_losses = AverageMeter()
-            end = time()
+        data_time = AverageMeter()
+        batch_time = AverageMeter()
+        pi_losses = AverageMeter()
+        v_losses = AverageMeter()
+        end = time()
 
-            bar = Bar(f'EPOCH {epoch+1:02d} ::: Training Net', max=len(batches))
-
+        bar = Bar(f'Training Net', max=train_steps)
+        current_step = 0
+        while current_step < train_steps:
             for batch_idx, batch in enumerate(batches):
+                if current_step == train_steps:
+                    break
+                current_step += 1
                 boards, target_pis, target_vs = batch
 
                 # predict
                 if args.cuda:
-                    boards, target_pis, target_vs = boards.contiguous().cuda(), target_pis.contiguous().cuda(), target_vs.contiguous().cuda()
+                    boards, target_pis, target_vs = boards.contiguous().cuda(
+                    ), target_pis.contiguous().cuda(), target_vs.contiguous().cuda()
 
                 # measure data loading time
                 data_time.update(time() - end)
@@ -75,9 +76,9 @@ class NNetWrapper(NeuralNet):
                 end = time()
 
                 # plot progress
-                bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss_pi: {lpi:.4f} | Loss_v: {lv:.3f}'.format(
-                    batch=batch_idx + 1,
-                    size=len(batches),
+                bar.suffix = '({step}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss_pi: {lpi:.4f} | Loss_v: {lv:.3f}'.format(
+                    step=current_step,
+                    size=train_steps,
                     data=data_time.avg,
                     bt=batch_time.avg,
                     total=bar.elapsed_td,
@@ -87,10 +88,9 @@ class NNetWrapper(NeuralNet):
                 )
                 bar.next()
             bar.finish()
-            overall_v_losses.update(v_losses.avg)
-            overall_pi_losses.update(pi_losses.avg)
             print()
-        return overall_pi_losses.avg, overall_v_losses.avg
+
+        return pi_losses.avg, v_losses.avg
 
     def predict(self, board):
         """

@@ -7,27 +7,30 @@ from utils import *
 
 args = dotdict({
     'workers': mp.cpu_count() - 1,
+    'startIter': 1,
     'numIters': 100,
-    'process_batch_size': 64,
+    'process_batch_size': 512,
     'train_batch_size': 512,
-    #should preferably be a multiple of process_batch_size and workers
-    'gamesPerIteration': 768,
+    'train_steps_per_iteration': 40,
+    # should preferably be a multiple of process_batch_size and workers
+    'gamesPerIteration': 3072,
     'numItersForTrainExamplesHistory': 10,
     'symmetricSamples': False,
     'updateThreshold': 0.6,
-    'arenaCompare': 50,
-    'arenaTemp': 0.1,
-    'numMCTSSims': 30,
+    'numMCTSSims': 25,
     'tempThreshold': 15,
     'compareWithRandom': True,
     'arenaCompareRandom': 500,
+    'arenaCompare': 40,
+    'arenaTemp': 0.1,
+    'arenaMCTS': True,
     'randomCompareFreq': 1,
     'compareWithPast': True,
-    'pastCompareFreq': 5,
+    'pastCompareFreq': 1,
     'expertValueWeight': dotdict({
         'start': 0,
-        'end': 1,
-        'iterations': 20
+        'end': 0,
+        'iterations': 1
     }),
     'cpuct': 1,
     'checkpoint': 'checkpoint',
@@ -41,7 +44,8 @@ if __name__ == "__main__":
     nnet = nn(g)
 
     if args.load_model:
-        nnet.load_checkpoint(args.load_folder_file[0], args.load_folder_file[1])
+        nnet.load_checkpoint(
+            args.load_folder_file[0], args.load_folder_file[1])
 
     c = Coach(g, nnet, args)
     c.learn()
