@@ -13,9 +13,9 @@ args = dotdict({
     'arenaCompare': 40,
     'arenaTemp': 0.1,
     # use zero if no montecarlo
-    'numMCTSSims': 25,
+    'numMCTSSims': 0,
     'cpuct': 1,
-    'playRandom': False,
+    'playRandom': True,
 })
 
 if __name__ == '__main__':

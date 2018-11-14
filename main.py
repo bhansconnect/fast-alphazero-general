@@ -11,7 +11,7 @@ args = dotdict({
     'numIters': 100,
     'process_batch_size': 512,
     'train_batch_size': 512,
-    'train_steps_per_iteration': 40,
+    'train_steps_per_iteration': 150,
     # should preferably be a multiple of process_batch_size and workers
     'gamesPerIteration': 3072,
     'numItersForTrainExamplesHistory': 10,
@@ -25,7 +25,7 @@ args = dotdict({
     'arenaTemp': 0.1,
     'arenaMCTS': True,
     'randomCompareFreq': 1,
-    'compareWithPast': True,
+    'compareWithPast': False,
     'pastCompareFreq': 1,
     'expertValueWeight': dotdict({
         'start': 0,
