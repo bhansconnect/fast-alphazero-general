@@ -38,6 +38,7 @@ class SelfPlayAgent(mp.Process):
             self.canonical.append(None)
 
     def run(self):
+        np.random.seed()
         while self.games_played.value < self.args.gamesPerIteration:
             self.generateCanonical()
             for i in range(self.args.numMCTSSims):
