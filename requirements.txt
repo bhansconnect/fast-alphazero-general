@@ -1,6 +1,6 @@
-numpy==1.16.2
-setuptools==40.8.0
+setuptools==41.0.1
+Cython==0.29.6
+numpy==1.17.0
 torch==1.1.0
 choix==0.3.3
-Cython==0.29.6
 tensorboardX==1.8

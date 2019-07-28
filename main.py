@@ -12,11 +12,11 @@ args = dotdict({
     'workers': mp.cpu_count() - 1,
     'startIter': 1,
     'numIters': 50,
-    'process_batch_size': 128,
+    'process_batch_size': 12,
     'train_batch_size': 512,
     'train_steps_per_iteration': 100,
     # should preferably be a multiple of process_batch_size and workers
-    'gamesPerIteration': 3072,
+    'gamesPerIteration': 30,
     'numItersForTrainExamplesHistory': 20,
     'symmetricSamples': False,
     'numMCTSSims': 25,

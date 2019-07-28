@@ -10,10 +10,18 @@ You may want to edit `NNetArchitecture.py` or `NNetWrapper.py` to implement diff
 
 `Coach.py` contains the core training loop and `MCTS.pyx` performs the Monte Carlo Tree Search. The parameters for the self-play can be specified in `main.py`. Additional neural network parameters are in `NNetWrapper.py` (learning rate, number of filters, depth of resnet).
 
-To start training a model for Othello:
+### Installation
 
+Install pytorch for gpu following [their guide](https://pytorch.org/get-started/locally/).
+Then run:
 ```bash
 pip install -r requirements.txt
+```
+
+### Execution
+
+To start training a model for Connect4:
+```bash
 python main.py
 ```
 
