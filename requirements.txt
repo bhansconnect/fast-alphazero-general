@@ -1,6 +1,5 @@
-setuptools==39.1.0
-numpy==1.14.3
-choix==0.3.1
-tensorboardX==1.2
-torch==0.4.0
-torchvision==0.2.1
+setuptools==40.8.0
+numpy==1.16.2
+choix==0.3.3
+torch==1.1.0
+tensorboardX==1.8

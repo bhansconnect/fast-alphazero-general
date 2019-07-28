@@ -1,16 +1,16 @@
+from .GobangNNet import GobangNNet as onnet
+import torch.optim as optim
+import torch
+from time import time
+from pytorch_classification.utils import Bar, AverageMeter
+from NeuralNet import NeuralNet
+from utils import *
 import os
 import numpy as np
 import sys
 
 sys.path.append('../../')
-from utils import *
-from NeuralNet import NeuralNet
-from pytorch_classification.utils import Bar, AverageMeter
-from time import time
 
-import torch
-import torch.optim as optim
-from .GobangNNet import GobangNNet as onnet
 
 args = dotdict({
     'lr': 0.001,
@@ -31,7 +31,7 @@ class NNetWrapper(NeuralNet):
         if args.cuda:
             self.nnet.cuda()
 
-   def train(self, batches, train_steps):
+    def train(self, batches, train_steps):
         self.nnet.train()
 
         data_time = AverageMeter()
@@ -101,7 +101,8 @@ class NNetWrapper(NeuralNet):
 
         # preparing input
         board = torch.FloatTensor(board.astype(np.float64))
-        if args.cuda: board = board.contiguous().cuda()
+        if args.cuda:
+            board = board.contiguous().cuda()
         with torch.no_grad():
             board = board.view(1, self.board_x, self.board_y)
 
