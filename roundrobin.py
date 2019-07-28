@@ -1,4 +1,7 @@
+import pyximport; pyximport.install()
+
 from pathlib import Path
+import pprint
 from glob import glob
 from utils import *
 from othello.NNet import NNetWrapper as nn
@@ -10,15 +13,19 @@ import numpy as np
 import choix
 
 args = dotdict({
-    'arenaCompare': 40,
-    'arenaTemp': 0.1,
+    'arenaCompare': 100,
+    'arenaTemp': 0,
+    'temp': 1,
+    'tempThreshold': 10,
     # use zero if no montecarlo
-    'numMCTSSims': 0,
+    'numMCTSSims': 50,
     'cpuct': 1,
-    'playRandom': True,
+    'playRandom': False,
 })
 
 if __name__ == '__main__':
+    print('Args:')
+    pprint.pprint(args)
     if not Path('roundrobin').exists():
         Path('roundrobin').mkdir()
     print('Beginning round robin')
@@ -50,28 +57,38 @@ if __name__ == '__main__':
             print(f'{file1.stem} vs {file2.stem}')
             nnet1.load_checkpoint(folder='roundrobin', filename=file1.name)
             if args.numMCTSSims <= 0:
-                p1 = NNPlayer(g, nnet1, args.arenaTemp).play
+                p1 = NNPlayer(g, nnet1, args.arenaTemp,
+                              args.tempThreshold).play
             else:
                 mcts1 = MCTS(g, nnet1, args)
 
-                def p1(x): return np.argmax(
-                    mcts1.getActionProb(x, temp=args.arenaTemp))
+                def p1(x, turn):
+                    if turn <= 2:
+                        mcts1.reset()
+                    temp = args.temp if turn <= args.tempThreshold else args.arenaTemp
+                    policy = mcts1.getActionProb(x, temp=temp)
+                    return np.random.choice(len(policy), p=policy)
             if file2.name != 'random':
                 nnet2.load_checkpoint(folder='roundrobin', filename=file2.name)
                 if args.numMCTSSims <= 0:
-                    p2 = NNPlayer(g, nnet2, args.arenaTemp).play
+                    p2 = NNPlayer(g, nnet1, args.arenaTemp,
+                                  args.tempThreshold).play
                 else:
                     mcts2 = MCTS(g, nnet2, args)
 
-                    def p2(x): return np.argmax(
-                        mcts2.getActionProb(x, temp=args.arenaTemp))
+                    def p2(x, turn):
+                        if turn <= 2:
+                            mcts2.reset()
+                        temp = args.temp if turn <= args.tempThreshold else args.arenaTemp
+                        policy = mcts2.getActionProb(x, temp=temp)
+                        return np.random.choice(len(policy), p=policy)
             else:
                 p2 = RandomPlayer(g).play
             arena = Arena(p1, p2, g)
             p1wins, p2wins, draws = arena.playGames(args.arenaCompare)
             win_matrix[i, j] = p1wins + 0.5*draws
             win_matrix[j, i] = p2wins + 0.5*draws
-            print(f'wins: {p1wins}, ties: {draws}, losses:{p2wins}')
+            print(f'wins: {p1wins}, ties: {draws}, losses:{p2wins}\n')
 
     print("\nWin Matrix(row beat column):")
     print(win_matrix)

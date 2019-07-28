@@ -2,7 +2,7 @@ class HumanOthelloPlayer:
     def __init__(self, game):
         self.game = game
 
-    def play(self, board):
+    def play(self, board, turn):
         # display(board)
         valid = self.game.getValidMoves(board, 1)
         for i in range(len(valid)):
@@ -25,7 +25,7 @@ class GreedyOthelloPlayer:
     def __init__(self, game):
         self.game = game
 
-    def play(self, board):
+    def play(self, board, turn):
         valids = self.game.getValidMoves(board, 1)
         candidates = []
         for a in range(self.game.getActionSize()):

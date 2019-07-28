@@ -33,6 +33,7 @@ class Infinite(object):
         self.start_ts = time()
         self.avg = 0
         self._ts = self.start_ts
+        self._uts = self.start_ts
         self._xput = deque(maxlen=self.sma_window)
         for key, val in kwargs.items():
             setattr(self, key, val)
@@ -70,7 +71,9 @@ class Infinite(object):
         self.update_avg(n, dt)
         self._ts = now
         self.index = self.index + n
-        self.update()
+        if now - self._uts >= 1:
+            self._uts = now
+            self.update()
 
     def iter(self, it):
         try:

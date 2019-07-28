@@ -1,9 +1,11 @@
+# cython: language_level=3
+
 from __future__ import print_function
+import numpy as np
+from .OthelloLogic import Board
+from Game import Game
 import sys
 sys.path.append('..')
-from Game import Game
-from .OthelloLogic import Board
-import numpy as np
 
 
 class OthelloGame(Game):
@@ -13,7 +15,7 @@ class OthelloGame(Game):
     def getInitBoard(self):
         # return initial board (numpy board)
         b = Board(self.n)
-        return np.array(b.pieces)
+        return np.asarray(b.pieces)
 
     def getBoardSize(self):
         # (a,b) tuple
@@ -30,21 +32,21 @@ class OthelloGame(Game):
             return (board, -player)
         b = Board(self.n)
         b.pieces = np.copy(board)
-        move = (int(action/self.n), action%self.n)
+        move = (int(action/self.n), action % self.n)
         b.execute_move(move, player)
-        return (b.pieces, -player)
+        return (np.asarray(b.pieces), -player)
 
     def getValidMoves(self, board, player):
         # return a fixed size binary vector
         valids = [0]*self.getActionSize()
         b = Board(self.n)
         b.pieces = np.copy(board)
-        legalMoves =  b.get_legal_moves(player)
-        if len(legalMoves)==0:
-            valids[-1]=1
+        legalMoves = b.get_legal_moves(player)
+        if len(legalMoves) == 0:
+            valids[-1] = 1
             return np.array(valids)
         for x, y in legalMoves:
-            valids[self.n*x+y]=1
+            valids[self.n*x+y] = 1
         return np.array(valids)
 
     def getGameEnded(self, board, player):
@@ -89,24 +91,27 @@ class OthelloGame(Game):
         b.pieces = np.copy(board)
         return b.countDiff(player)
 
+
 def display(board):
     n = board.shape[0]
 
     for y in range(n):
-        print (y,"|",end="")
+        print(y, "|", end="")
     print("")
     print(" -----------------------")
     for y in range(n):
-        print(y, "|",end="")    # print the row #
+        print(y, "|", end="")    # print the row #
         for x in range(n):
             piece = board[y][x]    # get the piece to print
-            if piece == -1: print("b ",end="")
-            elif piece == 1: print("W ",end="")
+            if piece == -1:
+                print("b ", end="")
+            elif piece == 1:
+                print("W ", end="")
             else:
-                if x==n:
-                    print("-",end="")
+                if x == n:
+                    print("-", end="")
                 else:
-                    print("- ",end="")
+                    print("- ", end="")
         print("|")
 
     print("   -----------------------")

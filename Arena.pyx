@@ -1,10 +1,14 @@
+# cython: language_level=3
+
 from pytorch_classification.utils import Bar, AverageMeter
 import time
+
 
 class Arena():
     """
     An Arena class where any 2 agents can be pit against each other.
     """
+
     def __init__(self, player1, player2, game, display=None):
         """
         Input:
@@ -36,23 +40,29 @@ class Arena():
         curPlayer = 1
         board = self.game.getInitBoard()
         it = 0
-        while self.game.getGameEnded(board, curPlayer)==0:
-            it+=1
+        while self.game.getGameEnded(board, curPlayer) == 0:
+            it += 1
             if verbose:
                 assert(self.display)
                 print("Turn ", str(it), "Player ", str(curPlayer))
                 self.display(board)
-            action = players[curPlayer+1](self.game.getCanonicalForm(board, curPlayer))
+            action = players[curPlayer +
+                             1](self.game.getCanonicalForm(board, curPlayer), it)
 
-            valids = self.game.getValidMoves(self.game.getCanonicalForm(board, curPlayer),1)
+            valids = self.game.getValidMoves(
+                self.game.getCanonicalForm(board, curPlayer), 1)
 
-            if valids[action]==0:
+            if valids[action] == 0:
+                print()
                 print(action)
-                assert valids[action] >0
+                print(valids)
+                print()
+                assert valids[action] > 0
             board, curPlayer = self.game.getNextState(board, curPlayer, action)
         if verbose:
             assert(self.display)
-            print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))
+            print("Game over: Turn ", str(it), "Result ",
+                  str(self.game.getGameEnded(board, 1)))
             self.display(board)
         return self.game.getGameEnded(board, 1)
 
@@ -78,39 +88,41 @@ class Arena():
         draws = 0
         for _ in range(num):
             gameResult = self.playGame(verbose=verbose)
-            if gameResult==1:
-                oneWon+=1
-            elif gameResult==-1:
-                twoWon+=1
+            if gameResult == 1:
+                oneWon += 1
+            elif gameResult == -1:
+                twoWon += 1
             else:
-                draws+=1
+                draws += 1
             # bookkeeping + plot progress
             eps += 1
             eps_time.update(time.time() - end)
             end = time.time()
-            bar.suffix  = '({eps}/{maxeps}) Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(eps=eps, maxeps=maxeps, et=eps_time.avg,
-                                                                                                       total=bar.elapsed_td, eta=bar.eta_td)
+            bar.suffix = '({eps}/{maxeps}) Winrate: {wr}%% | Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(
+                eps=eps, maxeps=maxeps, et=eps_time.avg, total=bar.elapsed_td, eta=bar.eta_td,
+                wr=int(100*(oneWon+0.5*draws)/(oneWon+twoWon+draws)))
             bar.next()
 
         self.player1, self.player2 = self.player2, self.player1
-        
+
         for _ in range(num):
             gameResult = self.playGame(verbose=verbose)
-            if gameResult==-1:
-                oneWon+=1                
-            elif gameResult==1:
-                twoWon+=1
+            if gameResult == -1:
+                oneWon += 1
+            elif gameResult == 1:
+                twoWon += 1
             else:
-                draws+=1
+                draws += 1
             # bookkeeping + plot progress
             eps += 1
             eps_time.update(time.time() - end)
             end = time.time()
-            bar.suffix  = '({eps}/{maxeps}) Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(eps=eps, maxeps=maxeps, et=eps_time.avg,
-                                                                                                       total=bar.elapsed_td, eta=bar.eta_td)
+            bar.suffix = '({eps}/{maxeps}) Winrate: {wr}%% | Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(
+                eps=eps, maxeps=maxeps, et=eps_time.avg, total=bar.elapsed_td, eta=bar.eta_td,
+                wr=int(100*(oneWon+0.5*draws)/(oneWon+twoWon+draws)))
             bar.next()
-            
+
+        bar.update()
         bar.finish()
-        print()
 
         return oneWon, twoWon, draws

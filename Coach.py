@@ -1,6 +1,8 @@
 from MCTS import MCTS
 from SelfPlayAgent import SelfPlayAgent
 import torch
+from pathlib import Path
+from glob import glob
 from torch import multiprocessing as mp
 from torch.utils.data import TensorDataset, ConcatDataset, DataLoader
 from tensorboardX import SummaryWriter
@@ -10,18 +12,27 @@ from pytorch_classification.utils import Bar, AverageMeter
 from queue import Empty
 from time import time
 import numpy as np
+from math import ceil
 import os
 
 
 class Coach:
     def __init__(self, game, nnet, args):
+        np.random.seed()
         self.game = game
         self.nnet = nnet
         self.pnet = self.nnet.__class__(self.game)
         self.args = args
 
-        self.nnet.save_checkpoint(
-            folder=self.args.checkpoint, filename='iteration-0000.pkl')
+        networks = sorted(glob(self.args.checkpoint+'/*'))
+        self.args.startIter = len(networks)
+        if self.args.startIter == 0:
+            self.nnet.save_checkpoint(
+                folder=self.args.checkpoint, filename='iteration-0000.pkl')
+            self.args.startIter = 1
+
+        self.nnet.load_checkpoint(
+            folder=self.args.checkpoint, filename=f'iteration-{(self.args.startIter-1):04d}.pkl')
 
         self.agents = []
         self.input_tensors = []
@@ -32,7 +43,10 @@ class Coach:
         self.file_queue = mp.Queue()
         self.completed = mp.Value('i', 0)
         self.games_played = mp.Value('i', 0)
-        self.writer = SummaryWriter()
+        if self.args.run_name != '':
+            self.writer = SummaryWriter(log_dir='runs/'+self.args.run_name)
+        else:
+            self.writer = SummaryWriter()
         self.args.expertValueWeight.current = self.args.expertValueWeight.start
 
     def learn(self):
@@ -55,6 +69,7 @@ class Coach:
             self.args.expertValueWeight.current = min(
                 i, z.iterations)/z.iterations * (z.end - z.start) + z.start
             print()
+        self.writer.close()
 
     def generateSelfPlayAgents(self):
         self.ready_queue = mp.Queue()
@@ -105,6 +120,7 @@ class Coach:
                 end = time()
             bar.suffix = f'({size}/{self.args.gamesPerIteration}) Sample Time: {sample_time.avg:.3f}s | Total: {bar.elapsed_td} | ETA: {bar.eta_td:}'
             bar.goto(size)
+        bar.update()
         bar.finish()
         print()
 
@@ -151,7 +167,11 @@ class Coach:
 
     def train(self, iteration):
         datasets = []
-        for i in range(max(1, iteration - self.args.numItersForTrainExamplesHistory), iteration + 1):
+        #currentHistorySize = self.args.numItersForTrainExamplesHistory
+        currentHistorySize = min(
+            max(4, (iteration + 4)//2),
+            self.args.numItersForTrainExamplesHistory)
+        for i in range(max(1, iteration - currentHistorySize), iteration + 1):
             data_tensor = torch.load(
                 f'{self.args.data}/iteration-{i:04d}-data.pkl')
             policy_tensor = torch.load(
@@ -187,16 +207,29 @@ class Coach:
             pplayer = MCTS(self.game, self.pnet, self.args)
             nplayer = MCTS(self.game, self.nnet, self.args)
 
-            arena = Arena(lambda x: np.argmax(pplayer.getActionProb(x, temp=self.args.arenaTemp)),
-                          lambda x: np.argmax(nplayer.getActionProb(x, temp=self.args.arenaTemp)), self.game)
+            def playpplayer(x, turn):
+                if turn <= 2:
+                    pplayer.reset()
+                temp = self.args.temp if turn <= self.args.tempThreshold else self.args.arenaTemp
+                policy = pplayer.getActionProb(x, temp=temp)
+                return np.random.choice(len(policy), p=policy)
+
+            def playnplayer(x, turn):
+                if turn <= 2:
+                    nplayer.reset()
+                temp = self.args.temp if turn <= self.args.tempThreshold else self.args.arenaTemp
+                policy = nplayer.getActionProb(x, temp=temp)
+                return np.random.choice(len(policy), p=policy)
+
+            arena = Arena(playnplayer, playpplayer, self.game)
         else:
             pplayer = NNPlayer(self.game, self.pnet, self.args.arenaTemp)
             nplayer = NNPlayer(self.game, self.nnet, self.args.arenaTemp)
 
-            arena = Arena(pplayer.play, nplayer.play, self.game)
-        pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
+            arena = Arena(nplayer.play, pplayer.play, self.game)
+        nwins, pwins, draws = arena.playGames(self.args.arenaCompare)
 
-        print(f'NEW/PAST WINS : {nwins} / {pwins} ; DRAWS : {draws}')
+        print(f'NEW/PAST WINS : {nwins} / {pwins} ; DRAWS : {draws}\n')
         self.writer.add_scalar(
             'win_rate/past', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)
 
@@ -205,9 +238,9 @@ class Coach:
         nnplayer = NNPlayer(self.game, self.nnet, self.args.arenaTemp)
         print('PITTING AGAINST RANDOM')
 
-        arena = Arena(r.play, nnplayer.play, self.game)
-        pwins, nwins, draws = arena.playGames(self.args.arenaCompareRandom)
+        arena = Arena(nnplayer.play, r.play, self.game)
+        nwins, pwins, draws = arena.playGames(self.args.arenaCompareRandom)
 
-        print(f'NEW/RANDOM WINS : {nwins} / {pwins} ; DRAWS : {draws}')
+        print(f'NEW/RANDOM WINS : {nwins} / {pwins} ; DRAWS : {draws}\n')
         self.writer.add_scalar(
             'win_rate/random', float(nwins + 0.5 * draws) / (pwins + nwins + draws), iteration)

@@ -1,3 +1,4 @@
+# cython: language_level=3
 import numpy as np
 import torch
 import torch.multiprocessing as mp
