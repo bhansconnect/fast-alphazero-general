@@ -1,5 +1,8 @@
-setuptools==40.8.0
 numpy==1.16.2
-choix==0.3.3
+setuptools==40.8.0
 torch==1.1.0
+choix==0.3.3
+Cython==0.29.6
+Arena==0.0.5
+MCTS==1.0.4
 tensorboardX==1.8
