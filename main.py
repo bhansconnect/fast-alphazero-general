@@ -8,7 +8,7 @@ from connect4.Connect4Game import Connect4Game as Game
 from utils import *
 
 args = dotdict({
-    'run_name': 'othello_resnet',
+    'run_name': 'connect4_resnet',
     'workers': mp.cpu_count() - 1,
     'startIter': 1,
     'numIters': 50,
