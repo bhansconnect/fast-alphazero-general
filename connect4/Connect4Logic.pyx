@@ -32,7 +32,7 @@ cdef class Board():
 
     def add_stone(self, int column, int player):
         "Create copy of board containing new stone."
-        cdef Py_ssize_t i
+        cdef Py_ssize_t r
         for r in range(self.height):
             if self.pieces[(self.height-1)-r,column] == 0:
                 self.pieces[(self.height-1)-r,column] = player
