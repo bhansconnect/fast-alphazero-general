@@ -50,9 +50,9 @@ class ResidualBlock(nn.Module):
         return out
 
 
-class OthelloNNet(nn.Module):
+class NNetArchitecture(nn.Module):
     def __init__(self, game, args):
-        super(OthelloNNet, self).__init__()
+        super(NNetArchitecture, self).__init__()
         # game params
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()

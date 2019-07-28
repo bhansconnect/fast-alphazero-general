@@ -3,9 +3,9 @@ import pyximport; pyximport.install()
 import Arena
 from MCTS import MCTS
 from GenericPlayers import *
-from othello.OthelloGame import OthelloGame, display
-from othello.OthelloPlayers import *
-from othello.NNet import NNetWrapper as NNet
+from connect4.Connect4Game import Connect4Game as Game
+from connect4.Connect4Players import *
+from NNetWrapper import NNetWrapper as NNet
 import numpy as np
 from utils import *
 
@@ -16,12 +16,12 @@ any agent.
 """
 if __name__ == '__main__':
 
-    g = OthelloGame(6)
+    g = Game()
 
     # all players
     rp = RandomPlayer(g).play
-    gp = GreedyOthelloPlayer(g).play
-    hp = HumanOthelloPlayer(g).play
+    #gp = OneStepLookaheadConnect4Player(g).play
+    hp = HumanConnect4Player(g).play
 
     # nnet players
     n1 = NNet(g)

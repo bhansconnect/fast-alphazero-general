@@ -4,7 +4,7 @@ from pathlib import Path
 import pprint
 from glob import glob
 from utils import *
-from othello.NNet import NNetWrapper as nn
+from NNetWrapper import NNetWrapper as nn
 from othello.OthelloGame import OthelloGame as Game
 from GenericPlayers import *
 from MCTS import MCTS

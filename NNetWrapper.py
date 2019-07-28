@@ -1,12 +1,12 @@
-from .GobangNNet import GobangNNet as onnet
+from NNetArchitecture import NNetArchitecture as nnetarch
 import torch.optim as optim
 import torch
 from time import time
 from pytorch_classification.utils import Bar, AverageMeter
-from NeuralNet import NeuralNet
 from utils import *
 import os
 import numpy as np
+import math
 import sys
 
 sys.path.append('../../')
@@ -14,19 +14,21 @@ sys.path.append('../../')
 
 args = dotdict({
     'lr': 0.001,
-    'dropout': 0.3,
-    'epochs': 10,
     'cuda': torch.cuda.is_available(),
-    'num_channels': 512,
+    'num_channels': 256,
+    'depth': 5,
 })
 
 
-class NNetWrapper(NeuralNet):
+class NNetWrapper():
     def __init__(self, game):
-        self.nnet = onnet(game, args)
+        self.nnet = nnetarch(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
-        self.optimizer = optim.Adam(self.nnet.parameters())
+        self.optimizer = optim.SGD(
+            self.nnet.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-3)
+        self.scheduler = optim.lr_scheduler.MultiStepLR(
+            self.optimizer, milestones=[40], gamma=0.1)
 
         if args.cuda:
             self.nnet.cuda()
@@ -40,6 +42,7 @@ class NNetWrapper(NeuralNet):
         v_losses = AverageMeter()
         end = time()
 
+        #print(f'Current LR: {self.scheduler.get_lr()[0]}')
         bar = Bar(f'Training Net', max=train_steps)
         current_step = 0
         while current_step < train_steps:
@@ -87,8 +90,9 @@ class NNetWrapper(NeuralNet):
                     lv=v_losses.avg,
                 )
                 bar.next()
-            bar.finish()
-            print()
+        self.scheduler.step()
+        bar.finish()
+        print()
 
         return pi_losses.avg, v_losses.avg
 
@@ -132,6 +136,8 @@ class NNetWrapper(NeuralNet):
             os.mkdir(folder)
         torch.save({
             'state_dict': self.nnet.state_dict(),
+            'opt_state': self.optimizer.state_dict(),
+            'sch_state': self.scheduler.state_dict()
         }, filepath)
 
     def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
@@ -141,3 +147,7 @@ class NNetWrapper(NeuralNet):
             raise ("No model in path {}".format(filepath))
         checkpoint = torch.load(filepath)
         self.nnet.load_state_dict(checkpoint['state_dict'])
+        if 'opt_state' in checkpoint:
+            self.optimizer.load_state_dict(checkpoint['opt_state'])
+        if 'sch_state' in checkpoint:
+            self.scheduler.load_state_dict(checkpoint['sch_state'])

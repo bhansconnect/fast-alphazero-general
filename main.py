@@ -3,8 +3,8 @@ import pyximport; pyximport.install()
 from torch import multiprocessing as mp
 
 from Coach import Coach
-from othello.NNet import NNetWrapper as nn
-from othello.OthelloGame import OthelloGame as Game
+from NNetWrapper import NNetWrapper as nn
+from connect4.Connect4Game import Connect4Game as Game
 from utils import *
 
 args = dotdict({
@@ -41,7 +41,7 @@ args = dotdict({
 })
 
 if __name__ == "__main__":
-    g = Game(6)
+    g = Game()
     nnet = nn(g)
     c = Coach(g, nnet, args)
     c.learn()

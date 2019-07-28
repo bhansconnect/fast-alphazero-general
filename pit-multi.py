@@ -4,9 +4,8 @@ from pathlib import Path
 import pprint
 from glob import glob
 from utils import *
-from othello.NNet import NNetWrapper as nn
-from othello.NNetOld import NNetWrapper as nno
-from othello.OthelloGame import OthelloGame as Game
+from NNetWrapper import NNetWrapper as nn
+from connect4.Connect4Game import Connect4Game as Game
 from tensorboardX import SummaryWriter
 from GenericPlayers import *
 from MCTS import MCTS
@@ -60,7 +59,7 @@ if __name__ == '__main__':
         f'Comparing {model_count} different models in {total_games} total games')
 
     g = Game(6)
-    nnet1 = nno(g)
+    nnet1 = nn(g)
     nnet2 = nn(g)
 
     nnet1.load_checkpoint(folder="", filename=benchmark_agent)

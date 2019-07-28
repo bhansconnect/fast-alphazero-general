@@ -4,9 +4,11 @@ An implementation of [AlphaZero](https://deepmind.com/blog/alphago-zero-learning
 
 This project only supports [Pytorch](https://pytorch.org/) models because of Pytorch's support for multiproccesing.
 
-To use a game of your choice, subclass the classes in `Game.py` and `NeuralNet.py` and implement their functions. Example implementations for Othello can be found in `othello/OthelloGame.pyx` and `othello/NNet.py`.
+To use a game of your choice, subclass the classes in `Game.py` implement its functions. Example implementations for Othello can be found in `othello/OthelloGame.pyx`.
 
-`Coach.py` contains the core training loop and `MCTS.pyx` performs the Monte Carlo Tree Search. The parameters for the self-play can be specified in `main.py`. Additional neural network parameters are in `othello/NNet.py` (cuda flag, batch size, epochs, learning rate etc.).
+You may want to edit `NNetArchitecture.py` or `NNetWrapper.py` to implement different neural networks for various games.
+
+`Coach.py` contains the core training loop and `MCTS.pyx` performs the Monte Carlo Tree Search. The parameters for the self-play can be specified in `main.py`. Additional neural network parameters are in `NNetWrapper.py` (learning rate, number of filters, depth of resnet).
 
 To start training a model for Othello:
 
