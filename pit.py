@@ -3,7 +3,7 @@ import pyximport; pyximport.install()
 import Arena
 from MCTS import MCTS
 from GenericPlayers import *
-from connect4.Connect4Game import Connect4Game as Game
+from connect4.Connect4Game import Connect4Game as Game, display
 from connect4.Connect4Players import *
 from NNetWrapper import NNetWrapper as NNet
 import numpy as np

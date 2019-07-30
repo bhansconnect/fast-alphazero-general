@@ -16,12 +16,12 @@ args = dotdict({
     'train_batch_size': 512,
     'train_steps_per_iteration': 100,
     # should preferably be a multiple of process_batch_size and workers
-    'gamesPerIteration': 3072,
+    'gamesPerIteration': (3072//(128*(mp.cpu_count()-1))+1) * (128*(mp.cpu_count()-1)),
     'numItersForTrainExamplesHistory': 20,
     'symmetricSamples': False,
-    'numMCTSSims': 25,
+    'numMCTSSims': 50,
     'tempThreshold': 10,
-    'temp': 1,
+    'temp': 2,
     'compareWithRandom': True,
     'arenaCompareRandom': 500,
     'arenaCompare': 50,
@@ -32,10 +32,10 @@ args = dotdict({
     'pastCompareFreq': 3,
     'expertValueWeight': dotdict({
         'start': 0,
-        'end': 0.5,
+        'end': 1,
         'iterations': 35
     }),
-    'cpuct': 2,
+    'cpuct': 4,
     'checkpoint': 'checkpoint',
     'data': 'data',
 })
