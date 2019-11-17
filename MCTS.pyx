@@ -65,10 +65,29 @@ class MCTS():
             probs[bestA] = 1
             return probs
 
-    def getExpertProb(self, canonicalBoard, temp=1):
+    def getExpertProb(self, canonicalBoard, temp=1, prune=False):
         s = self.game.stringRepresentation(canonicalBoard)
+
         counts = [self.Nsa[(s, a)] if (
             s, a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
+
+        if prune:
+            bestA = np.argmax(counts)
+            u_max = self.Qsa[(s, bestA)] + self.args.cpuct * \
+                self.Ps[s][bestA] * math.sqrt(self.Ns[s]) / (counts[bestA] + 1)
+            for a in range(self.game.getActionSize()):
+                if a == bestA:
+                    continue
+                if counts[a] <= 0:
+                    continue
+                desired = math.ceil(math.sqrt(2*self.Ps[s][a]*self.Ns[s]))
+                u_const = self.Qsa[(s, a)] + self.args.cpuct * \
+                    self.Ps[s][a] * math.sqrt(self.Ns[s])
+                for _ in range(desired):
+                    if counts[a] <= 0:
+                        break
+                    if u_const / counts[a] < u_max:
+                        counts[a] -= 1
 
         if temp == 0:
             bestA = np.argmax(counts)
@@ -127,7 +146,7 @@ class MCTS():
             self.v *= -1
         self.path = []
 
-    def findLeafToProcess(self, canonicalBoard):
+    def findLeafToProcess(self, canonicalBoard, isRoot):
         s = self.game.stringRepresentation(canonicalBoard)
 
         if s not in self.Es:
@@ -153,6 +172,10 @@ class MCTS():
         for a in range(self.game.getActionSize()):
             if valids[a]:
                 if (s, a) in self.Qsa:
+                    # prioritize under explored options.
+                    if isRoot and self.Nsa[(s, a)] < math.sqrt(2*self.Ps[s][a]*self.Ns[s]):
+                        best_act = a
+                        break
                     u = self.Qsa[(s, a)] + self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (
                         1 + self.Nsa[(s, a)])
                 else:
@@ -167,7 +190,7 @@ class MCTS():
         next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
         next_s = self.game.getCanonicalForm(next_s, next_player)
         self.path.append((s, a))
-        return self.findLeafToProcess(next_s)
+        return self.findLeafToProcess(next_s, False)
 
     def search(self, canonicalBoard):
         """

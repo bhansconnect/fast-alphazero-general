@@ -5,7 +5,8 @@ import pprint
 from glob import glob
 from utils import *
 from NNetWrapper import NNetWrapper as nn
-from connect4.Connect4Game import Connect4Game as Game
+from othello.special.NNetSpecialWrapper import NNetSpecialWrapper as nns
+from othello.OthelloGame import OthelloGame as Game
 from tensorboardX import SummaryWriter
 from GenericPlayers import *
 from MCTS import MCTS
@@ -18,21 +19,21 @@ use this script to play every x agents against a single agent and graph win rate
 """
 
 args = dotdict({
-    'run_name': 'sgd_res_better',
+    'run_name': 'othello_better_teacher',
     'arenaCompare': 100,
     'arenaTemp': 0,
     'temp': 1,
     'tempThreshold': 10,
     # use zero if no montecarlo
-    'numMCTSSims': 25,
+    'numMCTSSims': 50,
     'cpuct': 1,
-    'x': 5,
+    'x': 10,
 })
 
 if __name__ == '__main__':
     print('Args:')
     pprint.pprint(args)
-    benchmark_agent = "checkpoint/iteration-0050.pkl"
+    benchmark_agent = "othello/special/6x6_153checkpoints_best.pth.tar"
     
     if args.run_name != '':
         writer = SummaryWriter(log_dir='runs/'+args.run_name)
@@ -59,7 +60,7 @@ if __name__ == '__main__':
         f'Comparing {model_count} different models in {total_games} total games')
 
     g = Game(6)
-    nnet1 = nn(g)
+    nnet1 = nns(g)
     nnet2 = nn(g)
 
     nnet1.load_checkpoint(folder="", filename=benchmark_agent)

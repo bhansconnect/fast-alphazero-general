@@ -15,7 +15,7 @@ sys.path.append('../../')
 args = dotdict({
     'lr': 0.001,
     'cuda': torch.cuda.is_available(),
-    'num_channels': 256,
+    'num_channels': 128,
     'depth': 5,
 })
 
@@ -27,8 +27,10 @@ class NNetWrapper():
         self.action_size = game.getActionSize()
         self.optimizer = optim.SGD(
             self.nnet.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-3)
-        self.scheduler = optim.lr_scheduler.MultiStepLR(
-            self.optimizer, milestones=[40], gamma=0.1)
+        # self.scheduler = optim.lr_scheduler.MultiStepLR(
+        #    self.optimizer, milestones=[200,400], gamma=0.1)
+        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            self.optimizer, cooldown=10)
 
         if args.cuda:
             self.nnet.cuda()
@@ -90,7 +92,7 @@ class NNetWrapper():
                     lv=v_losses.avg,
                 )
                 bar.next()
-        self.scheduler.step()
+        self.scheduler.step(pi_losses.avg+v_losses.avg)
         bar.finish()
         print()
 

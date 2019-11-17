@@ -41,6 +41,7 @@ class Coach:
         self.batch_ready = []
         self.ready_queue = mp.Queue()
         self.file_queue = mp.Queue()
+        self.result_queue = mp.Queue()
         self.completed = mp.Value('i', 0)
         self.games_played = mp.Value('i', 0)
         if self.args.run_name != '':
@@ -56,6 +57,7 @@ class Coach:
             self.generateSelfPlayAgents()
             self.processSelfPlayBatches()
             self.saveIterationSamples(i)
+            self.processGameResults(i)
             self.killSelfPlayAgents()
             self.train(i)
             if self.args.compareWithRandom and (i-1) % self.args.randomCompareFreq == 0:
@@ -94,7 +96,7 @@ class Coach:
             self.agents.append(
                 SelfPlayAgent(i, self.game, self.ready_queue, self.batch_ready[i],
                               self.input_tensors[i], self.policy_tensors[i], self.value_tensors[i], self.file_queue,
-                              self.completed, self.games_played, self.args))
+                              self.result_queue, self.completed, self.games_played, self.args))
             self.agents[i].start()
 
     def processSelfPlayBatches(self):
@@ -164,6 +166,23 @@ class Coach:
         del data_tensor
         del policy_tensor
         del value_tensor
+
+    def processGameResults(self, iteration):
+        num_games = self.result_queue.qsize()
+        p1wins = 0
+        p2wins = 0
+        draws = 0
+        for _ in range(num_games):
+            winner = self.result_queue.get()
+            if winner == 1:
+                p1wins += 1
+            elif winner == -1:
+                p2wins += 1
+            else:
+                draws += 1
+        self.writer.add_scalar('win_rate/p1 vs p2',
+                               (p1wins+0.5*draws)/num_games, iteration)
+        self.writer.add_scalar('win_rate/draws', draws/num_games, iteration)
 
     def train(self, iteration):
         datasets = []

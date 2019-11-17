@@ -3,8 +3,8 @@ import pyximport; pyximport.install()
 import Arena
 from MCTS import MCTS
 from GenericPlayers import *
-from connect4.Connect4Game import Connect4Game as Game, display
-from connect4.Connect4Players import *
+from othello.OthelloGame import OthelloGame as Game, display
+from othello.OthelloPlayers import *
 from NNetWrapper import NNetWrapper as NNet
 import numpy as np
 from utils import *
@@ -16,16 +16,16 @@ any agent.
 """
 if __name__ == '__main__':
 
-    g = Game()
+    g = Game(6)
 
     # all players
     rp = RandomPlayer(g).play
     #gp = OneStepLookaheadConnect4Player(g).play
-    hp = HumanConnect4Player(g).play
+    hp = HumanOthelloPlayer(g).play
 
     # nnet players
     n1 = NNet(g)
-    n1.load_checkpoint('./checkpoint/', 'iteration-0050.pkl')
+    n1.load_checkpoint('./checkpoint/', 'iteration-0180.pkl')
     args1 = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
     mcts1 = MCTS(g, n1, args1)
 

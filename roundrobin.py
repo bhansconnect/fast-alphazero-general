@@ -5,7 +5,7 @@ import pprint
 from glob import glob
 from utils import *
 from NNetWrapper import NNetWrapper as nn
-from connect4.Connect4Game import Connect4Game as Game
+from othello.OthelloGame import OthelloGame as Game
 from GenericPlayers import *
 from MCTS import MCTS
 from Arena import Arena
@@ -13,13 +13,13 @@ import numpy as np
 import choix
 
 args = dotdict({
-    'arenaCompare': 100,
+    'arenaCompare': 50,
     'arenaTemp': 0,
     'temp': 1,
     'tempThreshold': 10,
     # use zero if no montecarlo
     'numMCTSSims': 50,
-    'cpuct': 1,
+    'cpuct': 4,
     'playRandom': False,
 })
 
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     if not Path('roundrobin').exists():
         Path('roundrobin').mkdir()
     print('Beginning round robin')
-    networks = sorted(glob('roundrobin/*'))
+    networks = sorted(glob('roundrobin/*'),reverse=True)
     model_count = len(networks) + int(args.playRandom)
 
     if model_count <= 2:
