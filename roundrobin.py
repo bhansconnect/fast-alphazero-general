@@ -5,7 +5,7 @@ import pprint
 from glob import glob
 from utils import *
 from NNetWrapper import NNetWrapper as nn
-from othello.OthelloGame import OthelloGame as Game
+from connect4.Connect4Game import Connect4Game as Game
 from GenericPlayers import *
 from MCTS import MCTS
 from Arena import Arena

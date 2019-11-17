@@ -4,11 +4,11 @@ from torch import multiprocessing as mp
 
 from Coach import Coach
 from NNetWrapper import NNetWrapper as nn
-from othello.OthelloGame import OthelloGame as Game
+from connect4.Connect4Game import Connect4Game as Game
 from utils import *
 
 args = dotdict({
-    'run_name': 'othello_better_teacher',
+    'run_name': 'connect4_hardcore',
     'workers': mp.cpu_count() - 1,
     'startIter': 1,
     'numIters': 1000,
@@ -43,7 +43,7 @@ args = dotdict({
 })
 
 if __name__ == "__main__":
-    g = Game(6)
+    g = Game()
     nnet = nn(g)
     c = Coach(g, nnet, args)
     c.learn()
