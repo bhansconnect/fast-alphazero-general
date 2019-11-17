@@ -98,6 +98,6 @@ if __name__ == '__main__':
         arena = Arena(p1, p2, g)
         p1wins, p2wins, draws = arena.playGames(args.arenaCompare)
         writer.add_scalar(
-            f'Win Rate vs {short_name}', (p2wins + 0.5*draws)/args.arenaCompare, i)
+            f'Win Rate vs {short_name}', (p2wins + 0.5*draws)/args.arenaCompare, i*args.x)
         print(f'wins: {p1wins}, ties: {draws}, losses:{p2wins}\n')
     writer.close()
