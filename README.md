@@ -29,22 +29,32 @@ Choose your game in `main.py`.
 
 #### Performance
 
-After training on Connect4 for 50 iteration on my desktop, the ai has definitely improved a ton:
+After training on Connect4 for 200 iteration(~1 day) on my laptop(Intel i7-8750H, GTX 1060 6GB), the ai has definitely improved a ton:
 ```
-1. iteration-0050 with 1.69 rating
-2. iteration-0045 with 1.61 rating
-3. iteration-0040 with 1.40 rating
-4. iteration-0035 with 1.04 rating
-5. iteration-0030 with 0.49 rating
-6. iteration-0025 with 0.34 rating
-7. iteration-0020 with -0.30 rating
-8. iteration-0015 with -0.56 rating
-9. iteration-0010 with -0.95 rating
-10. iteration-0005 with -1.39 rating
-11. iteration-0000 with -3.35 rating
+1. iteration-0200 with 2.70 rating
+2. iteration-0190 with 2.53 rating
+3. iteration-0180 with 2.49 rating
+4. iteration-0170 with 2.35 rating
+5. iteration-0160 with 2.14 rating
+6. iteration-0150 with 1.75 rating
+7. iteration-0140 with 1.63 rating
+8. iteration-0130 with 1.43 rating
+9. iteration-0120 with 1.14 rating
+10. iteration-0110 with 0.95 rating
+11. iteration-0100 with 0.50 rating
+12. iteration-0090 with 0.21 rating
+13. iteration-0080 with -0.13 rating
+14. iteration-0070 with -0.66 rating
+15. iteration-0060 with -0.90 rating
+16. iteration-0050 with -1.55 rating
+17. iteration-0040 with -1.97 rating
+18. iteration-0030 with -2.48 rating
+19. iteration-0020 with -3.10 rating
+20. iteration-0010 with -3.67 rating
+21. iteration-0000 with -5.36 rating
 
 (Rating Diff, Winrate) -> (0.5, 62%), (1, 73%), (2, 88%), (3, 95%), (5, 99%)
 ```
-These ratings aren't exactly elo, but they give a good sense of how much the AI has improved. From basically being random with a monte carlo tree search in iteration 0 to winning about 99% of the time against random with a montecarlo tree search by the end. On top of that, when iteration 45 and 50 play each other, they tie over half of the games.
+These ratings aren't exactly elo, but they give a good sense of how much the AI has improved. From basically being random with a monte carlo tree search in iteration 0 to winning about 100% of the time against random with a montecarlo tree search by the end. On top of that, when iteration 190 and 200 play each other, they tie over half of the games.
 
-When I tell iteration 50 to play itself optimally, it ties every single game. This means that it does not yet play perfectly because in perfect play, the first play wins every game. Still, it is definitely very good.
+When I tell iteration 200 to play itself optimally, it wins every single game that it is the first play. This means that it plays perfectly because in perfect play, the first play wins every game.
