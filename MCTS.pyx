@@ -18,6 +18,7 @@ class MCTS():
         self.game = game
         self.nnet = nnet
         self.args = args
+        self.init_board = self.game.stringRepresentation(self.game.getInitBoard())
         self.reset()
 
     def reset(self):
@@ -32,6 +33,17 @@ class MCTS():
         self.mode = 'leaf'
         self.path = []
         self.v = 0
+
+    def applyDirichletNoise(self, s, valids):
+        """
+        This function applies dirichlet noise to the valid moves.
+        """
+        dir_values = np.random.dirichlet([self.args.dirichletAlpha] * np.count_nonzero(valids))
+        dir_idx = 0
+        for idx in range(len(self.Ps[s])):
+            if self.Ps[s][idx]:
+                self.Ps[s][idx] = (0.75 * self.Ps[s][idx]) + (0.25 * dir_values[dir_idx])
+                dir_idx += 1
 
     def getActionProb(self, canonicalBoard, temp=1):
         """
@@ -224,6 +236,8 @@ class MCTS():
             # leaf node
             self.Ps[s], v = self.nnet.predict(canonicalBoard)
             valids = self.game.getValidMoves(canonicalBoard, 1)
+            if s == self.init_board:
+                self.applyDirNoise(s, valids)
             self.Ps[s] = self.Ps[s] * valids  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
             if sum_Ps_s > 0:
