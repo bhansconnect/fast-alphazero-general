@@ -1,5 +1,7 @@
 # Fast AlphaZero General
 
+> There is a new version of this project that is significantly faster. It has large parts written in C++ and may be less beginner friendly, but it is much more practical to use. It lives at [bhansconnect/alphazero-pybind11](https://github.com/bhansconnect/alphazero-pybind11). 
+
 An implementation of [AlphaZero](https://deepmind.com/blog/alphago-zero-learning-scratch/) for any game, inspired by [alpha-zero-general](https://github.com/suragnair/alpha-zero-general/). It uses multiprocessing and cython to greatly increase the performance. Due to certain optimizations, the project requires a gpu. Also note, `.pyx` files are cython files that are very similar to python (identical in some cases).
 
 This project only supports [Pytorch](https://pytorch.org/) models because of Pytorch's support for multiproccesing.
