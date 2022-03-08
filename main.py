@@ -40,6 +40,7 @@ args = dotdict({
     'cpuct': 3,
     'checkpoint': 'checkpoint',
     'data': 'data',
+    'dirichletAlpha': 0.3
 })
 
 if __name__ == "__main__":
